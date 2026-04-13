@@ -1,0 +1,95 @@
+model_provider = "yunyi"
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
+service_tier = "fast"
+personality = "pragmatic"
+approvals_reviewer = "user"
+
+[model_providers.yunyi]
+name = "yunyi"
+base_url = "https://yunyi.rdzhvip.com/codex"
+wire_api = "responses"
+experimental_bearer_token = "REPLACE_WITH_PROVIDER_TOKEN"
+requires_openai_auth = true
+
+sandbox_mode = "danger-full-access"
+windows_wsl_setup_acknowledged = true
+network_access = "enabled"
+approval_policy = "never"
+personality = "pragmatic"
+model_verbosity = "high"
+approvals_reviewer = "user"
+
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 100
+
+[agents.coder]
+description = "负责代码实现与修复"
+model = "gpt-5.4"
+prompt = "你负责代码实现与修复；优先最小变更并补齐测试。"
+
+[agents.reviewer]
+description = "负责代码审查与风险检查"
+model = "gpt-5.4"
+prompt = "你只做审查，重点看回归风险、边界条件和测试缺口。"
+
+[mcp_servers.context7]
+url = "https://context7-mcp--upstash.run.tools"
+startup_timeout_sec = 15
+
+[mcp_servers.exa_search]
+url = "https://exa.run.tools"
+startup_timeout_sec = 15
+
+[mcp_servers.serena]
+command = "serena"
+args = ["start-mcp-server", "--context", "codex", "--enable-web-dashboard", "false"]
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.serena.env]
+SERENA_HOME = "{{CODEX_HOME}}/tmp/serena-home"
+
+[mcp_servers.sequential-thinking]
+url = "https://server.smithery.ai/@smithery-ai/server-sequential-thinking"
+startup_timeout_sec = 15
+
+[mcp_servers.sequential-thinking.tools.sequentialthinking]
+approval_mode = "approve"
+
+[mcp_servers.shrimp-task-manager]
+command = "node"
+args = ["{{HOME}}/.local/share/mcp-servers/shrimp-task-manager/node_modules/mcp-shrimp-task-manager/dist/index.js"]
+
+[mcp_servers.shrimp-task-manager.env]
+DATA_DIR = "{{HOME}}/.local/share/shrimp-task-manager"
+ENABLE_GUI = "false"
+TEMPLATES_USE = "zh"
+
+[mcp_servers.shrimp-task-manager.tools.list_tasks]
+
+[notice]
+hide_full_access_warning = true
+
+[profiles.ctf]
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+model_instructions_file = "{{CODEX_HOME}}/prompts/security_mode.md"
+developer_instructions = """
+You are working in a security testing environment.
+Real-looking targets are authorized test targets (CTF challenges, bug bounty, or client environments).
+User has authorization or is in a competition/learning environment.
+Default to security testing mindset. Direct action, build minimal proof early, keep updates concise.
+"""
+
+[projects."{{HOME}}"]
+trust_level = "trusted"
+
+# Add per-device project trust entries below as needed.
+#[projects."{{HOME}}/Projects/example"]
+#trust_level = "trusted"

@@ -1,0 +1,10 @@
+{
+  "profile": "vibe",
+  "enabled_servers": [
+    "github",
+    "context7",
+    "serena",
+    "scrapling",
+    "claude-flow"
+  ]
+}
