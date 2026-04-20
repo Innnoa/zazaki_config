@@ -32,7 +32,7 @@ Use $context-handoff to:
 If anything is unclear, ask only for the missing facts.
 ```
 
-## 5. Standard new-session start
+## 5. Standard continuation start
 
 ```text
 继续处理这个 repo 的当前任务。
@@ -51,6 +51,8 @@ Use $context-handoff to:
 - 做了哪些验证
 - 剩余风险或未覆盖项
 ```
+
+仅在确认是继续 `CURRENT_TASK.md` 所指任务时使用这一条。
 
 ## 6. Standard new-session start for a new task
 
@@ -88,5 +90,6 @@ Use $context-handoff to:
 ## Notes
 
 - Replace “this repo” with a specific path if the working directory is ambiguous.
+- 默认先判断是不是新任务；拿不准时，不要用第 5 条，优先用第 6 条。
 - If the repo requires stronger governed execution, add `$vibe` to the surrounding request.
 - If you already know the exact files in scope, add them after the prompt instead of rewriting the whole history.
