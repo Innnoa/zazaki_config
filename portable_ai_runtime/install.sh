@@ -7,9 +7,22 @@ RUNTIME_PACK_DIR="$SCRIPT_DIR/portable_dotcodex"
 MODE="${1:-}"
 TARGET_CODEX_HOME="${2:-$HOME/.codex}"
 INIT_STATE="false"
+DRY_RUN="false"
 
 if [[ "$MODE" == "install" && "${3:-}" == "--init-state" ]]; then
   INIT_STATE="true"
+fi
+
+if [[ "$MODE" == "install" && "${4:-}" == "--dry-run" ]]; then
+  DRY_RUN="true"
+fi
+
+if [[ "$MODE" == "install" && "${3:-}" == "--dry-run" ]]; then
+  DRY_RUN="true"
+fi
+
+if [[ "$MODE" == "update" && "${3:-}" == "--dry-run" ]]; then
+  DRY_RUN="true"
 fi
 
 if [[ "$MODE" != "install" && "$MODE" != "update" ]]; then
@@ -33,6 +46,19 @@ init_state_files() {
 }
 
 if [[ "$MODE" == "install" ]]; then
+  if [[ "$DRY_RUN" == "true" ]]; then
+    printf 'dry-run mode: no files are actually written\n'
+    printf 'install target: %s\n' "$TARGET_CODEX_HOME"
+    printf 'would copy portable runtime pack from %s\n' "$RUNTIME_PACK_DIR"
+    printf 'would create config.toml only if missing; otherwise keep existing config.toml\n'
+    if [[ "$INIT_STATE" == "true" ]]; then
+      printf 'would initialize missing AI_GUIDE.md, CURRENT_TASK.md, DECISIONS.md, and handoff/TEMPLATE.md from templates\n'
+    else
+      printf 'would not initialize state files unless --init-state is provided\n'
+    fi
+    exit 0
+  fi
+
   printf 'installing portable runtime pack to %s\n' "$TARGET_CODEX_HOME"
   copy_runtime_pack
 
@@ -52,6 +78,15 @@ if [[ "$MODE" == "install" ]]; then
   printf '1. edit %s/config.toml and replace placeholder values\n' "$TARGET_CODEX_HOME"
   printf '2. review %s/AGENTS.md and the files under rules/ai, workflows/ai, references/ai\n' "$TARGET_CODEX_HOME"
   printf '3. if needed, initialize AI_GUIDE.md, CURRENT_TASK.md, DECISIONS.md from state-templates\n'
+  exit 0
+fi
+
+if [[ "$DRY_RUN" == "true" ]]; then
+  printf 'dry-run mode: no files are actually written\n'
+  printf 'update target: %s\n' "$TARGET_CODEX_HOME"
+  printf 'would update AGENTS.md, rules/ai, workflows/ai, references/ai, state-templates, and docs/governance\n'
+  printf 'would preserve existing config.toml if present\n'
+  printf 'would preserve live state files: AI_GUIDE.md, CURRENT_TASK.md, DECISIONS.md, and handoff/\n'
   exit 0
 fi
 

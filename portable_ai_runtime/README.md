@@ -44,15 +44,17 @@
 ## 建议用法
 
 1. 把整个 `portable_ai_runtime/` 目录带到新设备。
-2. 新环境执行 `./install.sh install [target_dir] [--init-state]`；已有环境升级执行 `./install.sh update [target_dir]`。
+2. 新环境执行 `./install.sh install [target_dir] [--init-state] [--dry-run]`；已有环境升级执行 `./install.sh update [target_dir] [--dry-run]`。
 3. `install` 会复制 runtime pack；`update` 会更新治理/runtime 文件，但默认不覆盖 live state 文件和 `config.toml`。
-4. 打开目标目录下的 `config.toml`，补齐 token、provider、项目 trust 和本机路径。
-5. 若使用 `--init-state`，脚本会在缺失时从模板初始化 `AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 和 `handoff/TEMPLATE.md`。
-6. 若要理解治理系统结构，优先阅读 `portable_dotcodex/AGENTS.md`、`rules/ai/`、`workflows/ai/`、`references/ai/`。
-7. 若新设备也要用 `shrimp-task-manager`、`serena` 等 MCP，再按本机环境补安装。
+4. `--dry-run` 只做高层预览，不写文件，也不做逐文件内容 diff。
+5. 打开目标目录下的 `config.toml`，补齐 token、provider、项目 trust 和本机路径。
+6. 若使用 `--init-state`，脚本会在缺失时从模板初始化 `AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 和 `handoff/TEMPLATE.md`。
+7. 若要理解治理系统结构，优先阅读 `portable_dotcodex/AGENTS.md`、`rules/ai/`、`workflows/ai/`、`references/ai/`。
+8. 若新设备也要用 `shrimp-task-manager`、`serena` 等 MCP，再按本机环境补安装。
 
 ## 更新边界
 
 - `update` 默认不覆盖 `config.toml`
 - `update` 默认不覆盖 live `AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 与 `handoff/`
 - `state-templates/` 会作为模板内容被更新，但不会直接覆盖 live state
+- `dry-run` 只输出会执行的动作范围，不写文件，也不提供逐文件 diff 结果
