@@ -1,4 +1,0 @@
-interface:
-  display_name: "Context Handoff"
-  short_description: "Manage task state and handoffs"
-  default_prompt: "Use $context-handoff to manage CURRENT_TASK.md, DECISIONS.md, AI_GUIDE.md, and handoff/templates for this repo."
