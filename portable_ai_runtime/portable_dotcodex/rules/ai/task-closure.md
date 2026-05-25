@@ -26,8 +26,19 @@
 
 - AAR 四问必须逐条检查一遍。
 - 四问全部为“没有”时，明确记录“本次无新增规则或坑点”。
-- 任意一问为“有”时，继续按 `workflows/ai/update-rules.md` 判断写入位置。
+- 任意一问为“有”时，先按 `workflows/ai/update-rules.md` 判断是否应直接进入正式落点；如果结论暂时只适合候选沉淀，则写入 `~/docs/ai/AAR_his/AAR_INBOX.md`，等待后续统一整理。
 - 不允许只回答“已检查”而不说明是否有新增结论。
+
+### AAR Inbox Entry Format
+
+- `~/docs/ai/AAR_his/AAR_INBOX.md` 只记录高价值摘录，不记录完整 AAR 或原始会话叙事。
+- 每条使用以下最小字段：
+  - `task`
+  - `type`
+  - `value`
+  - `suggested_destination`
+  - `status`
+- `status` 初始值为 `new`；后续统一整理后再改为 `moved` 或 `rejected`。
 
 ### 可跳过的窄场景
 

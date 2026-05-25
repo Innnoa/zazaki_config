@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-21",
+  "policy": "process-ledger-placeholder",
+  "status": "local-placeholder",
+  "notes": [
+    "This local skill pack includes a minimal process-ledger policy anchor so phase-cleanup-policy.json no longer points at missing files.",
+    "It does not claim a complete governed runtime process ledger in the current host."
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "logo": {
+    "type": "sixel",
+    "source": "~/Pictures/logo.png",
+    "width": 34,
+    "height": 24,
+    "padding": {
+      "top": 0,
+      "left": 0,
+      "right": 2
+    },
+    "preserveAspectRatio": true,
+    "printRemaining": true
+  },
+  "display": {
+    "separator": ": ",
+    "key": {
+      "width": 10
+    },
+    "size": {
+      "ndigits": 1
+    },
+    "duration": {
+      "abbreviation": true
+    }
+  },
+  "modules": [
+    {
+      "type": "title",
+      "key": " "
+    },
+    "separator",
+    {
+      "type": "os",
+      "key": "OS"
+    },
+    {
+      "type": "host",
+      "key": "Host"
+    },
+    {
+      "type": "kernel",
+      "key": "Kernel"
+    },
+    {
+      "type": "uptime",
+      "key": "Uptime"
+    },
+    {
+      "type": "packages",
+      "key": "Packages",
+      "combined": true
+    },
+    {
+      "type": "shell",
+      "key": "Shell"
+    },
+    {
+      "type": "terminal",
+      "key": "Terminal"
+    },
+    {
+      "type": "display",
+      "key": "Display",
+      "compactType": "none",
+      "preciseRefreshRate": false
+    },
+    {
+      "type": "wm",
+      "key": "WM",
+      "detectPlugin": true
+    },
+    {
+      "type": "cpu",
+      "key": "CPU",
+      "temp": false,
+      "showPeCoreCount": false
+    },
+    {
+      "type": "gpu",
+      "key": "GPU",
+      "driverSpecific": false,
+      "hideType": "integrated"
+    },
+    {
+      "type": "memory",
+      "key": "Memory"
+    },
+    {
+      "type": "swap",
+      "key": "Swap",
+      "separate": false
+    },
+    {
+      "type": "disk",
+      "key": "Disk",
+      "folders": "/",
+      "showExternal": false,
+      "showReadOnly": false,
+      "showHidden": false,
+      "showSubvolumes": false
+    },
+    {
+      "type": "processes",
+      "key": "Processes"
+    },
+    {
+      "type": "initsystem",
+      "key": "Init"
+    },
+    {
+      "type": "loadavg",
+      "key": "Load"
+    },
+    {
+      "type": "locale",
+      "key": "Locale"
+    }
+  ]
+}

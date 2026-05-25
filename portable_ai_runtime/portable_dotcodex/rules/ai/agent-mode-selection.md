@@ -26,3 +26,9 @@
 - 需要审查、检查、测试：优先 `Reviewer` 或 `vibe-review`
 - 需要安全测试：优先 `CTF`
 - 需要受管运行时、冻结 requirement/plan、跨轮复杂执行：优先 `vibe`
+
+### Subagent Language
+
+- 当 `Coder`、`Reviewer`、`CTF`、`vibe-plan`、`vibe-implement`、`vibe-review` 作为 subagent 被派发时，默认使用英文 prompt
+- subagent prompt 默认采用 `references/ai/subagent-prompt-template.md` 定义的共享英文结构，而不是按 agent 各自自由发挥格式
+- 主 agent 对用户的解释、总结与治理记录继续保持中文，除非用户另有要求

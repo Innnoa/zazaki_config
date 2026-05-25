@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vibe Router Provider Layer",
+  "type": "object",
+  "description": "Minimal local placeholder schema for router provider layer governance references.",
+  "properties": {
+    "version": {
+      "type": ["string", "number"]
+    },
+    "policy": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

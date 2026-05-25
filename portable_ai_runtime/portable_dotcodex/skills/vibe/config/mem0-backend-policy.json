@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-21",
+  "policy": "mem0-backend-placeholder",
+  "status": "local-placeholder",
+  "notes": [
+    "Minimal local contract anchor for memory-runtime-v3 policy references.",
+    "This file does not claim that a mem0 backend is configured or active in the current host."
+  ]
+}

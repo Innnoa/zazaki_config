@@ -1,0 +1,15 @@
+phrase	expected_route	expected_anchor_file	expected_anchor_text	note
+这个 bug 为什么还没修好	systematic-debugging	rules/ai/routing-rules.md	修 bug：出现 bug、测试失败、构建失败、意外行为	bug 路由样本
+这个测试怎么突然挂了	systematic-debugging	references/ai/trigger-phrases.md	systematic-debugging	测试失败路由样本
+帮我设计一下这个功能	brainstorming	rules/ai/routing-rules.md	实现功能：新增功能、行为修改、方案探索、需求设计	设计前置样本
+这个功能需求还没完全想清楚，先一起收敛一下	brainstorming	references/ai/trigger-phrases.md	brainstorming	需求未确认样本
+设计已经定了，给我拆计划	writing-plans	rules/ai/routing-rules.md	如果已经有设计/spec，且实现步骤达到 3 步及以上	已有 spec 计划样本
+这个改动要跨几个文件，先拆一下执行步骤	writing-plans	references/ai/trigger-phrases.md	writing-plans	多文件计划样本
+这个任务可以收尾了吗	verification-before-completion	references/ai/trigger-phrases.md	verification-before-completion	完成前验证样本
+准备提交前帮我确认一下还有没有缺口	verification-before-completion	rules/ai/routing-rules.md	提交前完成确认：应用 `rules/ai/verification-rules.md`	提交前验证样本
+这个任务很复杂，直接用 vibe 跑	vibe	rules/ai/routing-rules.md	用户明确提到 `vibe`，或任务涉及多文件修改、跨轮跟踪、需要冻结 requirement / plan、或需要更强验证闭环的任务：必须走 `vibe`	显式 vibe 路由样本
+这个要跨轮推进，而且后面还要冻结计划	vibe	rules/ai/routing-rules.md	用户明确提到 `vibe`，或任务涉及多文件修改、跨轮跟踪、需要冻结 requirement / plan、或需要更强验证闭环的任务：必须走 `vibe`	长链路 vibe 路由样本
+这次只是小补充，不算新任务	Session Discipline	rules/ai/session-discipline.md	这次只是小补充，不算新任务	重路由借口拦截样本
+压缩后应该还记得	Session Discipline	AGENTS.md	压缩后应该还记得	压缩后借口拦截样本
+超过 15w 就提醒我开新会话	会话预算规则	references/ai/session-budget-rules.md	150000 tokens	长会话强提醒样本
+Context 35253 tokens	会话预算观察	references/ai/trigger-phrases.md	会话预算观察	会话预算观察样本

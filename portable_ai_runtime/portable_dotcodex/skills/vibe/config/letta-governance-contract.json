@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-21",
+  "policy": "letta-governance-placeholder",
+  "status": "local-placeholder",
+  "notes": [
+    "Minimal local contract anchor for memory-runtime-v3 policy references.",
+    "This file does not claim that a Letta backend or conformance workflow is configured or active in the current host."
+  ]
+}

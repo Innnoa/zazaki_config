@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-21",
+  "status": "local-placeholder",
+  "notes": [
+    "Minimal binding example anchor for local router-model and router-provider config references.",
+    "Do not treat this file as proof that a provider-assisted runtime is active in the current host."
+  ]
+}
