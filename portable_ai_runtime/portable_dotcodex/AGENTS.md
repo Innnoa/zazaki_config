@@ -21,14 +21,19 @@
 - 每个新任务都必须重新读取入口并重新路由
 - 长会话、压缩、任务类型切换时，视为强制重路由点；`100000 tokens` 进入预警态，`150000 tokens` 进入强提醒态
 - 详细规则以 `rules/ai/session-discipline.md`、`references/ai/session-budget-rules.md` 为准
-### Common Tasks
-- 修 bug：`systematic-debugging` + `workflows/ai/fix-bug.md`
-- 新增功能、行为修改、方案探索：`brainstorming`
-- 已有设计/spec 且步骤较多：`writing-plans` + `workflows/ai/implement-feature.md`
-- 代码审查：`workflows/ai/review.md`
-- `vibe`：多文件修改、跨轮跟踪、冻结 requirement/plan，或用户明确提到 `vibe`
-- 多子任务且相互独立：先看 `workflows/ai/subagent-routing.md`
-- Other / unlisted task：先走 `Always Read`，再匹配最接近 workflow，并说明原因
+### Quick Routing
+
+| Task | Required Reads | Workflow |
+| --- | --- | --- |
+| Bug fix / test failure / build failure | `rules/ai/routing-rules.md` | `systematic-debugging` → `workflows/ai/fix-bug.md` |
+| New feature / behavior change / exploration | `rules/ai/routing-rules.md` | `brainstorming` |
+| Has spec, multi-step, multi-file | `rules/ai/routing-rules.md` | `writing-plans` → `workflows/ai/implement-feature.md` |
+| Code review | `workflows/ai/review.md` | `requesting-code-review` → `workflows/ai/review.md` |
+| Vibe (multi-file, cross-turn, frozen req/plan) | `skills/vibe/SKILL.md` | `vibe` |
+| Multi-subtask | `workflows/ai/subagent-routing.md` | `subagent-driven-development` |
+| Governance change | `workflows/ai/check-governance-consistency.md` | `customize-opencode` |
+| UX design / review | `rules/ai/routing-rules.md` | `ux-design` skill → internal Common Tasks |
+| Other / unlisted | `rules/ai/routing-rules.md` | Match closest workflow, explain why |
 ### Auto-Triggers
 - 当任务从修 bug 切到实现、审查、规划或治理时，重读 `rules/ai/routing-rules.md`
 - 当发生 `startup`、`clear`、`compact` 或明显上下文压缩时，重走入口

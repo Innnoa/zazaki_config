@@ -72,7 +72,7 @@ install_all() {
   local dirs=(
     agents commands scripts skills
     rules/ai workflows/ai references/ai
-    mcp prompts templates
+    mcp prompts templates plugins
     state-templates handoff
     docs/governance docs/plans docs/requirements
   )
@@ -90,6 +90,7 @@ install_all() {
     AGENTS.md
     "$CONFIG_TEMPLATE"
     settings.json
+    gitignore.template
   )
   for f in "${files[@]}"; do
     if [[ -f "$PACK_DIR/$f" ]]; then
@@ -103,6 +104,12 @@ install_all() {
     printf '  从模板创建: %s → %s\n' "$CONFIG_TEMPLATE" "$CONFIG_FILE"
   elif [[ -f "$TARGET_DIR/$CONFIG_FILE" ]]; then
     printf '  保留已有: %s（不覆盖）\n' "$CONFIG_FILE"
+  fi
+
+  # Copy gitignore.template → .gitignore if not exists
+  if [[ ! -f "$TARGET_DIR/.gitignore" && -f "$PACK_DIR/gitignore.template" ]]; then
+    cp "$PACK_DIR/gitignore.template" "$TARGET_DIR/.gitignore"
+    printf '  从模板创建: gitignore.template → .gitignore\n'
   fi
 }
 
@@ -121,11 +128,12 @@ install_dry_run() {
     AGENTS.md
     ${CONFIG_TEMPLATE} → ${CONFIG_FILE}（仅在缺失时创建）
     settings.json
-    agents/  commands/  scripts/  skills/
+    agents/  commands/  scripts/  skills/  plugins/
     rules/ai/  workflows/ai/  references/ai/
     mcp/  prompts/  templates/
     state-templates/  handoff/
     docs/governance/  docs/plans/  docs/requirements/
+    gitignore.template
 DRY
   if [[ "$INIT_STATE" == "true" ]]; then
     printf '\n  将从模板初始化缺失的状态文件：\n'
@@ -148,7 +156,7 @@ update_all() {
   printf '  更新治理规则与工作流...\n'
   local gov_dirs=(
     rules/ai workflows/ai references/ai
-    agents commands scripts
+    agents commands scripts plugins
     state-templates docs/governance docs/plans docs/requirements
   )
   for d in "${gov_dirs[@]}"; do
@@ -174,10 +182,13 @@ update_all() {
 
   printf '  更新 prompts 与 templates...\n'
   for d in prompts templates; do
+    if [[ -d "$TARGET_DIR/$d" ]]; then
+      rm -rf "$TARGET_DIR/$d"
+    fi
     [[ -d "$PACK_DIR/$d" ]] && safe_copy_dir "$PACK_DIR/$d" "$TARGET_DIR/$d"
   done
 
-  local files=(AGENTS.md settings.json "$CONFIG_TEMPLATE")
+  local files=(AGENTS.md settings.json "$CONFIG_TEMPLATE" gitignore.template)
   for f in "${files[@]}"; do
     [[ -f "$PACK_DIR/$f" ]] && cp "$PACK_DIR/$f" "$TARGET_DIR/$f"
   done
@@ -187,9 +198,19 @@ update_all() {
     printf '  从模板创建: %s → %s\n' "$CONFIG_TEMPLATE" "$CONFIG_FILE"
   fi
 
+  # Copy .gitignore if not exists
+  if [[ ! -f "$TARGET_DIR/.gitignore" && -f "$PACK_DIR/gitignore.template" ]]; then
+    cp "$PACK_DIR/gitignore.template" "$TARGET_DIR/.gitignore"
+    printf '  从模板创建: .gitignore\n'
+  fi
+
   if [[ -f "$PACK_DIR/handoff/TEMPLATE.md" ]]; then
     mkdir -p "$TARGET_DIR/handoff"
     cp "$PACK_DIR/handoff/TEMPLATE.md" "$TARGET_DIR/handoff/TEMPLATE.md"
+  fi
+  if [[ -f "$PACK_DIR/handoff/_TEMPLATE.md" ]]; then
+    mkdir -p "$TARGET_DIR/handoff"
+    cp "$PACK_DIR/handoff/_TEMPLATE.md" "$TARGET_DIR/handoff/_TEMPLATE.md"
   fi
 
   printf '  保留 live 状态文件（不覆盖）：\n'
@@ -212,12 +233,12 @@ update_dry_run() {
   pack 源    : $PACK_DIR
 
   将更新（覆盖）：
-    AGENTS.md  settings.json  ${CONFIG_TEMPLATE}
-    agents/  commands/  scripts/
+    AGENTS.md  settings.json  ${CONFIG_TEMPLATE}  gitignore.template
+    agents/  commands/  scripts/  plugins/
     skills/（pack 中的所有技能）
     rules/ai/  workflows/ai/  references/ai/
     mcp/  prompts/  templates/
-    state-templates/  handoff/TEMPLATE.md
+    state-templates/  handoff/TEMPLATE.md  handoff/_TEMPLATE.md
     docs/governance/  docs/plans/  docs/requirements/
 
   将保留（永不覆盖）：
@@ -238,6 +259,7 @@ init_state_files() {
   copy_if_missing "$tpl/DECISIONS.template.md"     "$TARGET_DIR/DECISIONS.md"     && printf '    DECISIONS.md\n'
   mkdir -p "$TARGET_DIR/handoff"
   copy_if_missing "$PACK_DIR/handoff/TEMPLATE.md"  "$TARGET_DIR/handoff/TEMPLATE.md" && printf '    handoff/TEMPLATE.md\n'
+  copy_if_missing "$PACK_DIR/handoff/_TEMPLATE.md" "$TARGET_DIR/handoff/_TEMPLATE.md" && printf '    handoff/_TEMPLATE.md\n'
 }
 
 # ── post-install hints ─────────────────────────────────────────────────

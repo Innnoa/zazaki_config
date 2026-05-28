@@ -10,6 +10,8 @@
 - `.vibeskills/mcp-auto-provision.json`
 - `tmp/serena-home`
 - `outputs/runtime/vibe-sessions/`
+- `outputs/runtime/plugin-loaded-receipt.json`（运行时 plugin 回执，每会话动态生成）
+- `skills/vibe/config/*.json` 中引用的 `apps/`, `packages/`, `dist/`, `adapters/`, `bundled/skills/` 等 projection-only / install-only 资产（上游 pack 范围）
 - 当前活跃的 `AI_GUIDE.md`
 - 当前活跃的 `CURRENT_TASK.md`
 - 当前活跃的 `DECISIONS.md`

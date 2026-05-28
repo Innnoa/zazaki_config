@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ------------------------------------------------------------------
+# pre-commit hook: block AI-generated files from entering git
+#
+# Uses the same two detection pathways as repo-audit:
+#   1. Static path patterns (CURRENT_TASK.md, DECISIONS.md, etc.)
+#   2. Dynamic header marker scan (<!-- ai-generated)
+#
+# Install: ln -s ~/.config/opencode/scripts/git-hooks/pre-commit .git/hooks/pre-commit
+#          or   cp  ~/.config/opencode/scripts/git-hooks/pre-commit .git/hooks/pre-commit
+# ------------------------------------------------------------------
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+
+# --- static path patterns (aligned with repo-audit AI_ARTIFACTS) ---
+AI_PATTERNS=(
+    ".codex/"
+    ".claude/"
+    "AI_GUIDE.md"
+    "CURRENT_TASK.md"
+    "DECISIONS.md"
+    "handoff/"
+    "outputs/runtime/"
+)
+
+# --- dynamic marker ---
+MARKER="<!-- ai-generated"
+
+# --- collect staged files ---
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+BLOCKED=()
+
+for file in $STAGED; do
+    # 1) static path check
+    for pat in "${AI_PATTERNS[@]}"; do
+        if [[ "$file" == "$pat" ]] || [[ "$file" == "$pat"* ]]; then
+            BLOCKED+=("$file  [static-path: $pat]")
+            break
+        fi
+    done
+
+    # 2) dynamic marker check (only if not already flagged)
+    if ! printf '%s\n' "${BLOCKED[@]}" | grep -qFx "$file  [static-path: $pat]" 2>/dev/null; then
+        if [[ -f "$ROOT_DIR/$file" ]]; then
+            first_line=$(head -n 1 "$ROOT_DIR/$file" 2>/dev/null || true)
+            if [[ "$first_line" == *"$MARKER"* ]]; then
+                BLOCKED+=("$file  [marker: $MARKER]")
+            fi
+        fi
+    fi
+    true  # reset check
+done
+
+if [[ ${#BLOCKED[@]} -gt 0 ]]; then
+    echo ""
+    echo "  repo-audit pre-commit: BLOCKED"
+    echo "  These files appear to be AI-generated artifacts:"
+    echo ""
+    for entry in "${BLOCKED[@]}"; do
+        echo "    $entry"
+    done
+    echo ""
+    echo "  Either remove them from the staging area or add them to .gitignore."
+    echo ""
+    exit 1
+fi
+
+exit 0

@@ -32,6 +32,7 @@
 - 涉及“修改后是否引入类型/语法/配置错误”“某个文件当前有哪些诊断”“需要定义跳转/引用/hover”这类问题时，优先使用 OpenCode 原生 LSP 相关能力获取诊断或查询证据
 - 涉及“跨文件语义定位”“符号级理解”“引用关系确认”“结构化改动”这类问题时，优先使用 `serena`
 - 提交前完成确认：应用 `rules/ai/verification-rules.md`，并在需要判断“是否可提交”时先运行 `repo-audit`
+- 设计/审查 UI/UX：加载 `ux-design` skill，按 skill 内部 Common Tasks 路由到对应规则层逐条审查
 - 未分类任务：先应用 Always Read，再选择最接近的 workflow，并在汇报里明确说明匹配原因
 
 ### 路由检查
@@ -42,3 +43,8 @@
 - 如果一个任务同时命中多个路径，优先顺序为：安全/阻断风险 > `vibe` 受管运行时 > 明确 workflow > 兜底路径。
 - 如果任务发生在 `/home/zazaki/.config/opencode` 本身，默认应读取这里的 `CURRENT_TASK.md`。
 - 准备使用多 agent / subagent 前，先执行 `workflows/ai/subagent-routing.md`；信息不足时先串行探索，再决定是否并行。
+
+### 检验句
+
+问自己：`我当前走的路径，和 routing-rules.md 里对这个任务类型的说明完全一致吗？`
+如果自己的判断和文件里写的不一样，以文件为准，不要自行"优化"路由。

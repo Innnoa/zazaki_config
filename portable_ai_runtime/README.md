@@ -7,26 +7,29 @@
 - `portable_dotcodex/`：runtime pack 主体。
 - `portable_dotcodex/opencode.template.jsonc`：脱敏后的 OpenCode 主配置模板，需手动补 API key 与本机路径。
 - `portable_dotcodex/config.template.toml`：脱敏后的 Codex `config.toml` 模板。
-- `portable_dotcodex/agents/`：OpenCode agent 定义（coder, reviewer, vibe-plan 等）。
-- `portable_dotcodex/commands/`：OpenCode command 模板。
-- `portable_dotcodex/scripts/`：治理验证脚本。
-- `portable_dotcodex/skills/`：OpenCode 技能（brainstorming, vibe, writing-plans 等 18 个）。
+- `portable_dotcodex/agents/`：OpenCode agent 定义（coder, reviewer, vibe-plan 等 6 个）。
+- `portable_dotcodex/commands/`：OpenCode command 模板（8 个）。
+- `portable_dotcodex/scripts/`：治理验证脚本（含 ai-governance-smoke-check、ai-trigger-check、check-vibe-config-paths、plugin-status-check、git-hooks）。
+- `portable_dotcodex/skills/`：OpenCode 技能（brainstorming, vibe, writing-plans 等 19 个）。
 - `portable_dotcodex/rules/ai/`：正式治理规则（9 个）。
 - `portable_dotcodex/workflows/ai/`：任务工作流（8 个）。
 - `portable_dotcodex/references/ai/`：参考样本与 trigger 对照（10 个）。
-- `portable_dotcodex/state-templates/`：`AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 模板。
+- `portable_dotcodex/state-templates/`：`AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 模板（含 AI 生成标记头部）。
+- `portable_dotcodex/plugins/`：运行时插件（session-governance.ts）。
+- `portable_dotcodex/templates/`：结构化模板（skill/SKILL.md、shells/AGENTS.md、protocol-blocks/、ANTI-TEMPLATES.md）。
+- `portable_dotcodex/gitignore.template`：`.gitignore` 模板。
 - `excluded/`：故意排除的内容说明。
 - `install.sh`：可选安装脚本。
 
 ## 已包含
 
-- `AGENTS.md`、`opencode.template.jsonc`、`config.template.toml`、`settings.json`
-- `agents/`（6 个 agent 定义）、`commands/`（3 个 command 模板）、`scripts/`（3 个治理脚本）
-- `skills/`（18 个技能：brainstorming, codex-session-audit, context-handoff, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, session-restart-prompt, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, vibe, writing-plans, writing-skills）
+- `AGENTS.md`、`opencode.template.jsonc`、`config.template.toml`、`settings.json`、`gitignore.template`
+- `agents/`（6 个 agent 定义）、`commands/`（8 个 command 模板）、`scripts/`（5 个治理脚本 + git-hooks）、`plugins/`（session-governance.ts）
+- `skills/`（19 个技能：brainstorming, codex-session-audit, context-handoff, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, session-restart-prompt, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, vibe, writing-plans, writing-skills）
 - `rules/ai/`（9 个）、`workflows/ai/`（8 个）、`references/ai/`（10 个）
 - `mcp/profiles/`、`mcp/servers.active.json`
-- `prompts/security_mode.md`、`templates/`、`handoff/TEMPLATE.md`
-- `state-templates/`、`docs/governance/`、`docs/plans/`、`docs/requirements/`
+- `prompts/security_mode.md`、`templates/`（结构化模板：ANTI-TEMPLATES.md、skill/SKILL.md、shells/AGENTS.md、protocol-blocks/）、`handoff/TEMPLATE.md`、`handoff/_TEMPLATE.md`
+- `state-templates/`（含 AI 生成标记头部）、`docs/governance/`、`docs/plans/`、`docs/requirements/`
 
 ## 未包含
 
@@ -38,6 +41,8 @@
 - 当前机器的 `handoff/` 实时内容
 - `skills/vibe/bundled/`（28MB 自动下发的子技能，vibe 运行时会自动补齐）
 - `skills/vibe/outputs/`（运行时产物）
+- `skills/vibe/config/*.json`（机器特定的路径引用）
+- `outputs/runtime/`（运行时回执等产物）
 - Codex 的 `[projects."..."] trust_level` 清单
 
 ## 建议用法

@@ -46,3 +46,8 @@
 - 详细判定与示例统一参考 `references/ai/runtime-refresh-rules.md`；不要把刷新规则分散重写到多个文件里。
 - 如果本次属于高频运行面治理场景（如 Serena / 原生 LSP / MCP 配置、subagent routing / prompt、command-template 或 agent-prompt 变更），优先直接套用 `references/ai/verification-templates.md` 中的紧凑证据块。
 - 如果本次属于会话预算治理场景（如 token 阈值、长会话提醒、重开会话规则），优先直接套用 `references/ai/verification-templates.md` 中的对应证据块。
+
+### 检验句
+
+问自己：`我声称"已完成"的依据是什么？那个依据是实际跑过的验证结果，还是"文件已经改好了"？`
+如果答案是后者——回去跑验证。

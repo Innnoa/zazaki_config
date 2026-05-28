@@ -16,7 +16,7 @@ agents = (root / "AGENTS.md").read_text(encoding="utf-8")
 required_blocks = [
     "Always Read",
     "Session Discipline",
-    "Common Tasks",
+    "Quick Routing",
     "Auto-Triggers",
     "Red Flags - STOP",
     "Known Gotchas",
@@ -41,6 +41,11 @@ smoke_files = [
     root / "references" / "ai" / "governance-smoke-check.md",
     root / "plugins" / "session-governance.ts",
     root / "skills" / "requesting-code-review" / "code-reviewer.md",
+    root / "templates" / "ANTI-TEMPLATES.md",
+    root / "templates" / "skill" / "SKILL.md",
+    root / "templates" / "shells" / "AGENTS.md",
+    root / "templates" / "protocol-blocks" / "session-discipline.md",
+    root / "templates" / "protocol-blocks" / "aar-check.md",
 ]
 for path in smoke_files:
     if not path.exists():
@@ -146,6 +151,122 @@ if errors:
     for error in errors:
         print(f"- {error}")
     sys.exit(1)
+
+# --- cross-reference scan ----------------------------------------------------
+# Recursively extract file references from governance .md files
+# and verify that every referenced path exists.
+md_files = list(root.rglob("rules/ai/*.md")) + list(root.rglob("workflows/ai/*.md")) + [root / "AGENTS.md"]
+ref_pattern = re.compile(r"`([^\s`]+\.(?:md|sh|py|ts|json))`")
+
+broken_refs = []
+for md_file in sorted(set(md_files)):
+    if not md_file.exists():
+        continue
+    text = md_file.read_text(encoding="utf-8")
+    for match in ref_pattern.findall(text):
+        ref = match
+        if ref.endswith(".md"):
+            if ref.startswith("http://") or ref.startswith("https://") or "://" in ref:
+                continue
+        if "/*" in ref:
+            continue  # skip glob patterns — cannot resolve to a single file
+        if ref.startswith("~/"):
+            resolved = Path(ref).expanduser()
+        elif not ref.startswith("/") and not ref.startswith("./"):
+            # try relative to referencing file first, then relative to root
+            candidate = md_file.parent / ref
+            if candidate.exists():
+                resolved = candidate
+            else:
+                resolved = root / ref
+        elif ref.startswith("./"):
+            resolved = md_file.parent / ref[2:]
+        else:
+            resolved = Path(ref)
+        if not resolved.exists():
+            broken_refs.append(f"{md_file.relative_to(root)} -> {ref}")
+
+if broken_refs:
+    print("FAIL: broken cross-references")
+    for br in sorted(set(broken_refs)):
+        print(f"  {br}")
+    sys.exit(1)
+
+# --- circular-reference check -------------------------------------------------
+# Build a reference graph from governance .md files and detect cycles.
+from collections import defaultdict
+
+graph = defaultdict(set)  # file -> set of files it references
+
+def resolve_ref(from_file: Path, raw: str) -> str | None:
+    if raw.startswith("http://") or raw.startswith("https://") or "://" in raw:
+        return None
+    if "/*" in raw:
+        return None
+    if raw.startswith("~/"):
+        r = Path(raw).expanduser()
+    elif not raw.startswith("/") and not raw.startswith("./"):
+        candidate = from_file.parent / raw
+        if candidate.exists():
+            r = candidate
+        else:
+            r = root / raw
+    elif raw.startswith("./"):
+        r = from_file.parent / raw[2:]
+    else:
+        r = Path(raw)
+    if r.exists() and r.suffix == ".md":
+        return str(r.resolve())
+    return None
+
+for md_file in sorted({p.resolve() for p in md_files if p.exists()}):
+    text = md_file.read_text(encoding="utf-8")
+    for match in ref_pattern.findall(text):
+        target = resolve_ref(md_file, match)
+        if target:
+            graph[str(md_file)].add(target)
+
+def has_cycle(graph: dict) -> list[str] | None:
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = {node: WHITE for node in graph}
+    parent: dict[str, str | None] = {node: None for node in graph}
+
+    def dfs(node: str) -> list[str] | None:
+        color[node] = GRAY
+        for neighbor in graph.get(node, set()):
+            if color.get(neighbor, WHITE) == GRAY:
+                # build cycle path
+                cycle = [neighbor, node]
+                cur = parent.get(node)
+                while cur and cur != neighbor:
+                    cycle.append(cur)
+                    cur = parent.get(cur)
+                return cycle
+            if color.get(neighbor, WHITE) == WHITE:
+                parent[neighbor] = node
+                result = dfs(neighbor)
+                if result:
+                    return result
+        color[node] = BLACK
+        return None
+
+    for node in graph:
+        if color.get(node, WHITE) == WHITE:
+            cycle = dfs(node)
+            if cycle:
+                return cycle
+    return None
+
+cycle = has_cycle(graph)
+if cycle:
+    rel_cycle = []
+    for p in cycle:
+        try:
+            rel_cycle.append(str(Path(p).relative_to(root)))
+        except ValueError:
+            rel_cycle.append(p)
+    print(f"WARN: circular reference detected (common in governance docs, verify it is intentional)")
+    print(f"  cycle: {' -> '.join(reversed(rel_cycle))}")
 
 print("PASS: governance smoke check")
 PY

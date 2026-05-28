@@ -1,0 +1,19 @@
+node_modules
+package.json
+package-lock.json
+bun.lock
+.gitignore
+
+# Secrets
+provider-secrets.env
+
+# AI-generated state files (do not version control)
+AI_GUIDE.md
+CURRENT_TASK.md
+DECISIONS.md
+handoff/
+
+# Tool internal state
+.codex/
+.serena/
+outputs/

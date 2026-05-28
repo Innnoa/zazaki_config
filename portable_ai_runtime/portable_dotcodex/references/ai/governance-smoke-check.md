@@ -16,7 +16,7 @@
 1. `AGENTS.md` 是否仍保留以下入口块：
    - `Always Read`
    - `Session Discipline`
-   - `Common Tasks`
+   - `Quick Routing`
    - `Auto-Triggers`
    - `Red Flags - STOP`
    - `Known Gotchas`
@@ -35,6 +35,31 @@
 - 文件级人工核对
 - `opencode.json` 执行一次 JSON 语法校验
 - 必要时用内容搜索确认阈值和固定提醒文案只有一套
+
+### 实验性插件与 Hook 验证
+
+`plugins/session-governance.ts` 通过以下 hook 实施运行时治理：
+
+- `experimental.chat.system.transform`：在每次系统提示中注入 Governance Shell 和 Session Budget 块
+- `experimental.session.compacting`：在上下文压缩时保留 CURRENT_TASK、DECISIONS 和 session-budget-rules
+- `permission.ask`：对治理文件编辑做权限升级和文件尺寸硬拒绝
+
+验证步骤（需要重启当前 OpenCode 会话后才能完整验证）：
+
+1. 重启 OpenCode 后，在新会话中检查系统提示是否包含 `Governance Shell` 和 `Session Budget` 块
+2. 触发一次上下文压缩（长对话或手动 compact），检查压缩后是否仍保留 `Governance Context To Preserve` 块
+3. 尝试编辑一个超过 350 行或 15KB 的治理文件，确认被拒绝并显示尺寸超限消息
+4. 编辑一个正常大小的治理文件（如 `rules/ai/task-closure.md`），确认系统弹出权限确认而不是静默允许
+
+当前会话内可通过以下方式做静态验证：
+
+```bash
+# 确认插件文件存在且语法正确
+npx tsc --noEmit plugins/session-governance.ts 2>&1 || echo "TS check not available"
+
+# 确认所有 hook 回调已注册
+rg "permission.ask|experimental.chat.system.transform|experimental.session.compacting" plugins/session-governance.ts
+```
 
 ### 通过标准
 

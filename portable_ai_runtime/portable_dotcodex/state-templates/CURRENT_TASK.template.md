@@ -1,3 +1,5 @@
+<!-- ai-generated: true | do-not-version-control -->
+
 # CURRENT_TASK
 
 本文件是当前任务的唯一权威状态文件。任务切换时应覆盖旧内容，不保留无关历史。

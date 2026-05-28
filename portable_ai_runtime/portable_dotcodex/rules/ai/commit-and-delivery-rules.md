@@ -6,6 +6,9 @@
 - 优先使用本地 MCP `audit_repo_before_commit`。
 - 若返回阻断问题，先说明问题路径、类型和建议处理方式，不得继续提交。
 - 不得把构建、缓存、依赖、AI 运行产物、脏文件或未确认的未跟踪文件加入公开提交。
+- `repo-audit` 会通过两个途径拦截 AI 产物：1) 静态路径匹配（如 `CURRENT_TASK.md`、`DECISIONS.md`、`handoff/` 等）；2) 文件首行的 `<!-- ai-generated` 动态标记检测。凡是带此标记的文件，即使不在静态列表中也会被阻断。
+- 可通过 `ln -s ~/.config/opencode/scripts/git-hooks/pre-commit .git/hooks/pre-commit` 安装预提交钩子，实现硬门禁：任何带 `<!-- ai-generated` 标记或在静态 AI 产物路径列表中的文件进入暂存区时，git commit 会被直接拒绝。
+- 当 AI 在新项目初始化 git 仓库（`git init`）或首次进入已有 git 仓库开始工作时，应主动检查并安装该 pre-commit hook。如果 `.git/hooks/pre-commit` 不存在或不指向当前版本的 hook，执行安装命令。
 
 ### 交付要求
 

@@ -1,3 +1,5 @@
+<!-- ai-generated: true | do-not-version-control -->
+
 # Handoff Template
 
 将下面内容复制为新的交接记录时，只保留当前任务真正需要的最小信息。

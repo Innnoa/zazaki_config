@@ -1,3 +1,5 @@
+<!-- ai-generated: true | do-not-version-control -->
+
 # AI_GUIDE
 
 ## 作用

@@ -1,3 +1,5 @@
+<!-- ai-generated: true | do-not-version-control -->
+
 # DECISIONS
 
 本文件记录会被后续反复引用的重要技术决策。每条决策只保留结论、原因和影响，不记录冗长推理过程。
