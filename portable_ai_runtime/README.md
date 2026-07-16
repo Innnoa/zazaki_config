@@ -7,36 +7,25 @@
 ```bash
 git clone git@github.com:Innnoa/zazaki_config.git
 cd zazaki_config/portable_ai_runtime
-./install.sh                          # 交互式菜单，按提示选择工具和目录
+./install.sh                          # 交互菜单: 选工具 → 选全局/项目 → 确认
 ```
 
-无参数运行时进入交互菜单：选工具 → 选操作 → 指定目录 → 确认。
+**交互流程**：所有五种工具统一走"选工具 → 选范围 → 确认"三步。全局安装用文件复制，项目安装用符号链接（更新仓库即同步所有项目）。
 
-### 系统级工具（复制安装）
-
-独立运行环境，复制全套规则到工具配置目录：
+命令行模式（脚本自动化）：
 
 ```bash
-./install.sh opencode install        # → ~/.config/opencode/
-./install.sh opencode update         # 更新已有安装
-./install.sh codex    install        # → ~/.codex/
+./install.sh opencode install                  # OpenCode 全局 → ~/.config/opencode/
+./install.sh opencode install ~/my-project     # OpenCode 项目 → 指定目录
+./install.sh cursor   install ~/my-project     # Cursor 项目 → .cursorrules + 符号链接
+./install.sh claude   install ~/.claude        # Claude 全局 → ~/.claude/CLAUDE.md
+./install.sh copilot  install ~/my-project     # Copilot 项目 → .github/
+
+./install.sh opencode update                   # 更新已有 OpenCode 安装
+./install.sh codex    update                   # 更新已有 Codex 安装
 ```
 
-### 项目/全局工具（符号链接安装）
-
-只在目标目录放一个入口文件，核心规则通过符号链接引用。更新仓库一次，所有安装自动同步：
-
-```bash
-./install.sh cursor  install ~/my-project     # Cursor: 项目目录 → .cursorrules
-./install.sh cursor  install ~                # Cursor: 全局 → ~/.cursorrules
-./install.sh claude  install ~/my-project     # Claude: 项目目录 → CLAUDE.md
-./install.sh claude  install ~/.claude        # Claude: 全局 → ~/.claude/CLAUDE.md
-./install.sh copilot install ~/my-project     # Copilot: .github/copilot-instructions.md
-```
-
-以上命令也支持交互模式（`./install.sh` 回车后选 3/4/5）。
-
-所有安装命令均支持 `--dry-run`（预览）和 `--init-state`（初始化状态文件）。
+所有命令支持 `--dry-run`（预览）和 `--init-state`（初始化状态文件）。
 
 ## 目录结构
 
@@ -82,27 +71,58 @@ portable_ai_runtime/
 ./scripts/ai-governance-smoke-check.sh  # 单独运行入门口检查
 ```
 
+## 配置 API Key
+
+所有 `{env:VAR_NAME}` 占位符通过环境变量注入，不在配置文件中存裸密钥。
+
+### 方式一：手动 export
+
+```bash
+# 在 ~/.zshrc 或 ~/.bashrc 中
+export OPENAI_API_KEY="sk-xxx"
+export DEEPSEEK_API_KEY="sk-xxx"
+export BRAVE_API_KEY="xxx"
+export GITHUB_TOKEN="xxx"
+```
+
+### 方式二：provider-secrets.env（推荐）
+
+创建 `~/.config/opencode/provider-secrets.env`（不会被 git 追踪）：
+
+```bash
+OPENAI_API_KEY="sk-xxx"
+DEEPSEEK_API_KEY="sk-xxx"
+BRAVE_API_KEY="xxx"
+GITHUB_TOKEN="ghp_xxx"
+```
+
+启动时 source：
+
+```bash
+source ~/.config/opencode/provider-secrets.env && opencode
+```
+
+或加到 `~/.zshrc`：
+
+```bash
+alias op="source ~/.config/opencode/provider-secrets.env && opencode"
+```
+
 ## 定制
 
 | 工具 | 配置文件 | 修改内容 |
 |---|---|---|
-| OpenCode | `~/.config/opencode/opencode.json` | 替换 API key (`{env:VAR}`)、MCP 路径 (`YOUR_PATH`) |
+| OpenCode | `~/.config/opencode/opencode.json` | 替换 MCP 路径、检查 provider baseURL |
 | Codex | `~/.codex/config.toml` | 填入 token 和 provider 配置 |
 | Cursor | 项目目录 `.cursorrules` | 直接编辑入口文件 |
 | Claude Code | 项目目录 `CLAUDE.md` | 直接编辑入口文件 |
-| Copilot | 项目目录 `.github/copilot-instructions.md` | 提交到 Git 仓库后生效 |
-
-所有 API key 使用 `{env:VAR_NAME}` 占位符，不在配置文件中存裸密钥。
+| Copilot | 项目目录 `.github/copilot-instructions.md` | 提交到 Git 仓库后生效
 
 ## 安装原理
 
 ```
-系统级 (opencode/codex):
-  仓库 → 复制 core/ + 工具配置 → ~/.config/opencode/
-  工具自行读取其配置目录下的文件。
+所有工具 → 选工具 → 选范围 → 确认
 
-Cursor / Claude Code / Copilot:
-  仓库 → 入口文件 + core/ 符号链接 → 目标目录
-  可以是项目目录（仅该项目生效）或全局目录（所有项目生效）。
-  git pull 仓库 → 所有安装自动获得最新规则。
+全局安装: 仓库 → 文件复制 → 配置目录（所有项目生效，独立运行）
+项目安装: 仓库 → 符号链接 → 项目目录（仅该项目生效，git pull 即同步）
 ```
