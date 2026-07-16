@@ -135,28 +135,16 @@ interactive_menu() {
     # ── 1. 选工具 ──
     choose_tool
 
-    # ── 2. 选操作 (所有工具统一) ──
-    echo ""
-    printf '%s%s — 选择操作%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
-    printf '  全局安装: 文件复制，独立运行\n'
-    printf '  项目安装: 符号链接，仓库更新即同步\n'
-    PS3=$'\n选择操作: '
-    select op in "安装" "返回"; do
-      case "$REPLY" in
-        1) break ;;
-        2) continue 3 ;;  # 回到工具选择
-      esac
-    done
+    # ── 2. 选范围 ──
+    if ! choose_scope; then
+      continue
+    fi
 
-    if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]] && [[ "$MODE" != "update" ]]; then
+    # ── 3. 初始化状态文件 (仅 opencode/codex) ──
+    if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
       echo ""
       read -r -p "初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: " init_choice
       [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
-    fi
-
-    # ── 3. 全局 or 项目 ──
-    if ! choose_scope; then
-      continue
     fi
 
     # ── 4. 确认 ──
