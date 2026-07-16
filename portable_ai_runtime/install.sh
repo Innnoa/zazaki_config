@@ -181,6 +181,7 @@ valid_types="opencode codex cursor claude copilot"
 [[ " $valid_types " == *" $TARGET_TYPE "* ]] || usage
 
 if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
+  [[ -z "$MODE" ]] && MODE="install"
   [[ "$MODE" == "install" || "$MODE" == "update" ]] || usage
 else
   MODE="install"
