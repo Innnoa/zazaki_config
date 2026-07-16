@@ -7,7 +7,10 @@
 ```bash
 git clone git@github.com:Innnoa/zazaki_config.git
 cd zazaki_config/portable_ai_runtime
+./install.sh                          # 交互式菜单，按提示选择工具和目录
 ```
+
+无参数运行时进入交互菜单：选工具 → 选操作 → 指定目录 → 确认。
 
 ### 系统级工具（复制安装）
 
@@ -24,12 +27,14 @@ cd zazaki_config/portable_ai_runtime
 只在项目目录放一个入口文件，核心规则通过符号链接引用。更新仓库一次，所有项目自动同步：
 
 ```bash
-./install.sh cursor  install ~/my-project    # → .cursorrules + 符号链接
-./install.sh claude  install ~/my-project    # → CLAUDE.md + 符号链接
-./install.sh copilot install ~/my-project    # → .github/copilot-instructions.md + 符号链接
+./install.sh cursor  install ~/my-project       # → .cursorrules + 符号链接
+./install.sh claude  install ~/my-project       # → CLAUDE.md + 符号链接
+./install.sh copilot install ~/my-project       # → .github/copilot-instructions.md + 符号链接
 ```
 
-所有安装命令均支持 `--dry-run`（预览模式）和 `--init-state`（初始化状态文件）。
+以上命令也支持交互模式（`./install.sh` 回车后选 3/4/5）。
+
+所有安装命令均支持 `--dry-run`（预览）和 `--init-state`（初始化状态文件）。
 
 ## 目录结构
 
