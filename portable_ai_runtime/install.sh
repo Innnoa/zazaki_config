@@ -2,21 +2,34 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-PACK_DIR="$SCRIPT_DIR/portable_dotcodex"
+PACK_DIR="$SCRIPT_DIR"
 
 # ── usage ──────────────────────────────────────────────────────────────
 
 usage() {
   cat <<'EOF'
 用法:
-  install.sh opencode install [目标目录] [--init-state] [--dry-run]
-  install.sh opencode update  [目标目录] [--dry-run]
-  install.sh codex    install [目标目录] [--init-state] [--dry-run]
-  install.sh codex    update  [目标目录] [--dry-run]
+  install.sh opencode  install [目标目录] [--init-state] [--dry-run]
+  install.sh opencode  update  [目标目录] [--dry-run]
+  install.sh codex     install [目标目录] [--init-state] [--dry-run]
+  install.sh codex     update  [目标目录] [--dry-run]
+  install.sh cursor    install [项目目录] [--dry-run]
+  install.sh claude    install [项目目录] [--dry-run]
+  install.sh copilot   install [项目目录] [--dry-run]
+
+目标类型:
+  opencode → AI governance for OpenCode CLI
+  codex    → AI governance for Codex CLI
+  cursor   → project-level Cursor rules
+  claude   → project-level Claude Code rules
+  copilot  → project-level GitHub Copilot instructions
 
 默认目标目录:
   opencode → ~/.config/opencode
   codex    → ~/.codex
+  cursor   → 当前工作目录
+  claude   → 当前工作目录
+  copilot  → 当前工作目录
 EOF
   exit 1
 }
@@ -26,8 +39,15 @@ EOF
 TARGET_TYPE="${1:-}"
 MODE="${2:-}"
 
-[[ "$TARGET_TYPE" == "opencode" || "$TARGET_TYPE" == "codex" ]] || usage
-[[ "$MODE" == "install" || "$MODE" == "update"   ]] || usage
+valid_types="opencode codex cursor claude copilot"
+valid_for_type() { [[ " $valid_types " == *" $1 "* ]]; }
+valid_for_type "$TARGET_TYPE" || usage
+
+if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
+  [[ "$MODE" == "install" || "$MODE" == "update" ]] || usage
+else
+  MODE="install"
+fi
 
 TARGET_DIR=""
 INIT_STATE="false"
@@ -43,213 +63,176 @@ for arg in "${@:3}"; do
 done
 
 if [[ -z "$TARGET_DIR" ]]; then
-  if [[ "$TARGET_TYPE" == "opencode" ]]; then
-    TARGET_DIR="$HOME/.config/opencode"
-  else
-    TARGET_DIR="$HOME/.codex"
-  fi
-fi
-
-if [[ "$TARGET_TYPE" == "opencode" ]]; then
-  CONFIG_TEMPLATE="opencode.template.jsonc"
-  CONFIG_FILE="opencode.json"
-else
-  CONFIG_TEMPLATE="config.template.toml"
-  CONFIG_FILE="config.toml"
+  case "$TARGET_TYPE" in
+    opencode) TARGET_DIR="$HOME/.config/opencode" ;;
+    codex)    TARGET_DIR="$HOME/.codex" ;;
+    *)        TARGET_DIR="$PWD" ;;
+  esac
 fi
 
 # ── helpers ────────────────────────────────────────────────────────────
 
-safe_copy()      { mkdir -p "$(dirname "$2")"; cp -R "$1" "$2"; }
-safe_copy_dir()  { mkdir -p "$2"; cp -R "$1/." "$2/"; }
+safe_copy_dir() { mkdir -p "$2"; cp -R "$1/." "$2/"; }
 copy_if_missing() { [[ -f "$2" ]] || cp "$1" "$2"; }
+
+# ── core rule dirs (shared across all tools) ───────────────────────────
+
+CORE_DIRS=(rules workflows references skills scripts templates)
+CORE_FILES=(AGENTS.md)
+
+copy_core() {
+  local dest="$1"
+  printf '  安装核心治理规则...\n'
+  for d in "${CORE_DIRS[@]}"; do
+    if [[ -d "$PACK_DIR/$d" ]]; then
+      safe_copy_dir "$PACK_DIR/$d" "$dest/$d"
+      printf '    已复制: %s\n' "$d"
+    fi
+  done
+  for f in "${CORE_FILES[@]}"; do
+    if [[ -f "$PACK_DIR/$f" ]]; then
+      cp "$PACK_DIR/$f" "$dest/$f"
+      printf '    已复制: %s\n' "$f"
+    fi
+  done
+  if [[ -d "$PACK_DIR/state-templates" ]]; then
+    safe_copy_dir "$PACK_DIR/state-templates" "$dest/state-templates"
+  fi
+  if [[ -d "$PACK_DIR/handoff" ]]; then
+    safe_copy_dir "$PACK_DIR/handoff" "$dest/handoff"
+  fi
+  if [[ -d "$PACK_DIR/templates" ]]; then
+    safe_copy_dir "$PACK_DIR/templates" "$dest/templates"
+  fi
+}
 
 # ── install ────────────────────────────────────────────────────────────
 
 install_all() {
   mkdir -p "$TARGET_DIR"
 
-  local dirs=(
-    agents commands scripts skills
-    rules/ai workflows/ai references/ai
-    mcp prompts templates plugins
-    state-templates handoff
-    docs/governance docs/plans docs/requirements
-  )
-
-  local ok=0
-  for d in "${dirs[@]}"; do
-    if [[ -d "$PACK_DIR/$d" ]]; then
-      safe_copy_dir "$PACK_DIR/$d" "$TARGET_DIR/$d"
-      printf '  已复制: %s\n' "$d"
-      ok=$((ok + 1))
-    fi
-  done
-
-  local files=(
-    AGENTS.md
-    "$CONFIG_TEMPLATE"
-    settings.json
-    gitignore.template
-  )
-  for f in "${files[@]}"; do
-    if [[ -f "$PACK_DIR/$f" ]]; then
-      cp "$PACK_DIR/$f" "$TARGET_DIR/$f"
-      printf '  已复制: %s\n' "$f"
-    fi
-  done
-
-  if [[ ! -f "$TARGET_DIR/$CONFIG_FILE" && -f "$TARGET_DIR/$CONFIG_TEMPLATE" ]]; then
-    cp "$TARGET_DIR/$CONFIG_TEMPLATE" "$TARGET_DIR/$CONFIG_FILE"
-    printf '  从模板创建: %s → %s\n' "$CONFIG_TEMPLATE" "$CONFIG_FILE"
-  elif [[ -f "$TARGET_DIR/$CONFIG_FILE" ]]; then
-    printf '  保留已有: %s（不覆盖）\n' "$CONFIG_FILE"
-  fi
-
-  # Copy gitignore.template → .gitignore if not exists
-  if [[ ! -f "$TARGET_DIR/.gitignore" && -f "$PACK_DIR/gitignore.template" ]]; then
-    cp "$PACK_DIR/gitignore.template" "$TARGET_DIR/.gitignore"
-    printf '  从模板创建: gitignore.template → .gitignore\n'
-  fi
+  case "$TARGET_TYPE" in
+    opencode)
+      copy_core "$TARGET_DIR"
+      printf '  安装 OpenCode 配置...\n'
+      safe_copy_dir "$PACK_DIR/opencode/agents"    "$TARGET_DIR/agents"
+      safe_copy_dir "$PACK_DIR/opencode/commands"   "$TARGET_DIR/commands"
+      safe_copy_dir "$PACK_DIR/opencode/plugins"    "$TARGET_DIR/plugins"
+      safe_copy_dir "$PACK_DIR/opencode/prompts"    "$TARGET_DIR/prompts"
+      safe_copy_dir "$PACK_DIR/opencode/mcp"        "$TARGET_DIR/mcp"
+      cp "$PACK_DIR/opencode/opencode.template.jsonc" "$TARGET_DIR/opencode.template.jsonc"
+      if [[ ! -f "$TARGET_DIR/opencode.json" ]]; then
+        cp "$TARGET_DIR/opencode.template.jsonc" "$TARGET_DIR/opencode.json"
+        printf '    从模板创建: opencode.json\n'
+      else
+        printf '    保留已有: opencode.json\n'
+      fi
+      cp "$PACK_DIR/opencode/gitignore.template" "$TARGET_DIR/gitignore.template"
+      if [[ ! -f "$TARGET_DIR/.gitignore" ]]; then
+        cp "$PACK_DIR/opencode/gitignore.template" "$TARGET_DIR/.gitignore"
+        printf '    从模板创建: .gitignore\n'
+      fi
+      ;;
+    codex)
+      copy_core "$TARGET_DIR"
+      printf '  安装 Codex 配置...\n'
+      cp "$PACK_DIR/adapters/codex/config.template.toml" "$TARGET_DIR/config.template.toml"
+      cp "$PACK_DIR/adapters/codex/settings.json"       "$TARGET_DIR/settings.json"
+      if [[ ! -f "$TARGET_DIR/config.toml" ]]; then
+        cp "$PACK_DIR/adapters/codex/config.template.toml" "$TARGET_DIR/config.toml"
+        printf '    从模板创建: config.toml\n'
+      else
+        printf '    保留已有: config.toml\n'
+      fi
+      ;;
+    cursor)
+      cp "$PACK_DIR/adapters/cursor/.cursorrules" "$TARGET_DIR/.cursorrules"
+      copy_core "$TARGET_DIR"
+      printf '  已安装: .cursorrules + 核心规则\n'
+      ;;
+    claude)
+      cp "$PACK_DIR/adapters/claude-code/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+      copy_core "$TARGET_DIR"
+      printf '  已安装: CLAUDE.md + 核心规则\n'
+      ;;
+    copilot)
+      mkdir -p "$TARGET_DIR/.github"
+      cp "$PACK_DIR/adapters/copilot/copilot-instructions.md" "$TARGET_DIR/.github/copilot-instructions.md"
+      copy_core "$TARGET_DIR"
+      printf '  已安装: .github/copilot-instructions.md + 核心规则\n'
+      ;;
+  esac
 }
 
 install_dry_run() {
   cat <<DRY
 
-═══════════════════════════════════════════
+═══════════════════════════════════════
   dry-run 模式：不会写入任何文件
-═══════════════════════════════════════════
+═══════════════════════════════════════
 
   目标类型   : $TARGET_TYPE
   目标目录   : $TARGET_DIR
   pack 源    : $PACK_DIR
 
-  将复制以下内容：
-    AGENTS.md
-    ${CONFIG_TEMPLATE} → ${CONFIG_FILE}（仅在缺失时创建）
-    settings.json
-    agents/  commands/  scripts/  skills/  plugins/
-    rules/ai/  workflows/ai/  references/ai/
-    mcp/  prompts/  templates/
-    state-templates/  handoff/
-    docs/governance/  docs/plans/  docs/requirements/
-    gitignore.template
+  将安装核心治理规则和 $TARGET_TYPE 适配器。
 DRY
-  if [[ "$INIT_STATE" == "true" ]]; then
-    printf '\n  将从模板初始化缺失的状态文件：\n'
-    printf '    AI_GUIDE.md  CURRENT_TASK.md  DECISIONS.md  handoff/TEMPLATE.md\n'
-  fi
   printf '\n'
 }
 
-# ── update ─────────────────────────────────────────────────────────────
+# ── update (opencode / codex only) ─────────────────────────────────────
 
-LIVE_STATE_FILES=(
-  AI_GUIDE.md
-  CURRENT_TASK.md
-  DECISIONS.md
-)
+LIVE_STATE_FILES=(AI_GUIDE.md CURRENT_TASK.md DECISIONS.md)
 
 update_all() {
   mkdir -p "$TARGET_DIR"
 
-  printf '  更新治理规则与工作流...\n'
-  local gov_dirs=(
-    rules/ai workflows/ai references/ai
-    agents commands scripts plugins
-    state-templates docs/governance docs/plans docs/requirements
-  )
-  for d in "${gov_dirs[@]}"; do
+  printf '  更新核心治理规则与工作流...\n'
+  for d in "${CORE_DIRS[@]}"; do
     if [[ -d "$PACK_DIR/$d" ]]; then
       safe_copy_dir "$PACK_DIR/$d" "$TARGET_DIR/$d"
     fi
   done
+  cp "$PACK_DIR/AGENTS.md" "$TARGET_DIR/AGENTS.md"
 
-  printf '  更新技能...\n'
-  if [[ -d "$PACK_DIR/skills" ]]; then
-    mkdir -p "$TARGET_DIR/skills"
-    for skill in "$PACK_DIR/skills/"*; do
-      skill_name="$(basename "$skill")"
-      if [[ -d "$TARGET_DIR/skills/$skill_name" ]]; then
-        rm -rf "$TARGET_DIR/skills/$skill_name"
-      fi
-      cp -R "$skill" "$TARGET_DIR/skills/$skill_name"
-    done
-  fi
-
-  printf '  更新 MCP 配置...\n'
-  [[ -d "$PACK_DIR/mcp" ]] && safe_copy_dir "$PACK_DIR/mcp" "$TARGET_DIR/mcp"
-
-  printf '  更新 prompts 与 templates...\n'
-  for d in prompts templates; do
-    if [[ -d "$TARGET_DIR/$d" ]]; then
-      rm -rf "$TARGET_DIR/$d"
-    fi
-    [[ -d "$PACK_DIR/$d" ]] && safe_copy_dir "$PACK_DIR/$d" "$TARGET_DIR/$d"
-  done
-
-  local files=(AGENTS.md settings.json "$CONFIG_TEMPLATE" gitignore.template)
-  for f in "${files[@]}"; do
-    [[ -f "$PACK_DIR/$f" ]] && cp "$PACK_DIR/$f" "$TARGET_DIR/$f"
-  done
-
-  if [[ ! -f "$TARGET_DIR/$CONFIG_FILE" && -f "$TARGET_DIR/$CONFIG_TEMPLATE" ]]; then
-    cp "$TARGET_DIR/$CONFIG_TEMPLATE" "$TARGET_DIR/$CONFIG_FILE"
-    printf '  从模板创建: %s → %s\n' "$CONFIG_TEMPLATE" "$CONFIG_FILE"
-  fi
-
-  # Copy .gitignore if not exists
-  if [[ ! -f "$TARGET_DIR/.gitignore" && -f "$PACK_DIR/gitignore.template" ]]; then
-    cp "$PACK_DIR/gitignore.template" "$TARGET_DIR/.gitignore"
-    printf '  从模板创建: .gitignore\n'
-  fi
-
-  if [[ -f "$PACK_DIR/handoff/TEMPLATE.md" ]]; then
-    mkdir -p "$TARGET_DIR/handoff"
-    cp "$PACK_DIR/handoff/TEMPLATE.md" "$TARGET_DIR/handoff/TEMPLATE.md"
-  fi
-  if [[ -f "$PACK_DIR/handoff/_TEMPLATE.md" ]]; then
-    mkdir -p "$TARGET_DIR/handoff"
-    cp "$PACK_DIR/handoff/_TEMPLATE.md" "$TARGET_DIR/handoff/_TEMPLATE.md"
-  fi
+  printf '  更新工具适配器...\n'
+  case "$TARGET_TYPE" in
+    opencode)
+      safe_copy_dir "$PACK_DIR/opencode/agents"  "$TARGET_DIR/agents"
+      safe_copy_dir "$PACK_DIR/opencode/commands" "$TARGET_DIR/commands"
+      safe_copy_dir "$PACK_DIR/opencode/plugins"  "$TARGET_DIR/plugins"
+      cp "$PACK_DIR/opencode/opencode.template.jsonc" "$TARGET_DIR/opencode.template.jsonc"
+      cp "$PACK_DIR/opencode/gitignore.template" "$TARGET_DIR/gitignore.template"
+      ;;
+    codex)
+      cp "$PACK_DIR/adapters/codex/config.template.toml" "$TARGET_DIR/config.template.toml"
+      cp "$PACK_DIR/adapters/codex/settings.json"       "$TARGET_DIR/settings.json"
+      ;;
+  esac
 
   printf '  保留 live 状态文件（不覆盖）：\n'
   for f in "${LIVE_STATE_FILES[@]}"; do
-    if [[ -f "$TARGET_DIR/$f" ]]; then
-      printf '    %s\n' "$f"
-    fi
+    [[ -f "$TARGET_DIR/$f" ]] && printf '    %s\n' "$f"
   done
 }
 
 update_dry_run() {
   cat <<DRY
 
-═══════════════════════════════════════════
+═══════════════════════════════════════
   dry-run 模式：不会写入任何文件
-═══════════════════════════════════════════
+═══════════════════════════════════════
 
   目标类型   : $TARGET_TYPE
   目标目录   : $TARGET_DIR
-  pack 源    : $PACK_DIR
 
-  将更新（覆盖）：
-    AGENTS.md  settings.json  ${CONFIG_TEMPLATE}  gitignore.template
-    agents/  commands/  scripts/  plugins/
-    skills/（pack 中的所有技能）
-    rules/ai/  workflows/ai/  references/ai/
-    mcp/  prompts/  templates/
-    state-templates/  handoff/TEMPLATE.md  handoff/_TEMPLATE.md
-    docs/governance/  docs/plans/  docs/requirements/
-
-  将保留（永不覆盖）：
-    ${CONFIG_FILE}
-    AI_GUIDE.md  CURRENT_TASK.md  DECISIONS.md
-    handoff/*（TEMPLATE.md 除外）
+  将更新核心规则和 $TARGET_TYPE 适配器。
+  保留 live 状态文件 (AI_GUIDE.md, CURRENT_TASK.md, DECISIONS.md)。
 DRY
   printf '\n'
 }
 
-# ── state initialization (install only) ────────────────────────────────
+# ── state initialization ───────────────────────────────────────────────
 
 init_state_files() {
   printf '  初始化状态文件（缺失时从模板创建）...\n'
@@ -257,72 +240,57 @@ init_state_files() {
   copy_if_missing "$tpl/AI_GUIDE.template.md"     "$TARGET_DIR/AI_GUIDE.md"     && printf '    AI_GUIDE.md\n'
   copy_if_missing "$tpl/CURRENT_TASK.template.md"  "$TARGET_DIR/CURRENT_TASK.md"  && printf '    CURRENT_TASK.md\n'
   copy_if_missing "$tpl/DECISIONS.template.md"     "$TARGET_DIR/DECISIONS.md"     && printf '    DECISIONS.md\n'
-  mkdir -p "$TARGET_DIR/handoff"
-  copy_if_missing "$PACK_DIR/handoff/TEMPLATE.md"  "$TARGET_DIR/handoff/TEMPLATE.md" && printf '    handoff/TEMPLATE.md\n'
-  copy_if_missing "$PACK_DIR/handoff/_TEMPLATE.md" "$TARGET_DIR/handoff/_TEMPLATE.md" && printf '    handoff/_TEMPLATE.md\n'
+  [[ -d "$PACK_DIR/handoff" ]] && mkdir -p "$TARGET_DIR/handoff"
+  copy_if_missing "$PACK_DIR/handoff/TEMPLATE.md"  "$TARGET_DIR/handoff/TEMPLATE.md"  && printf '    handoff/TEMPLATE.md\n' || true
+  copy_if_missing "$PACK_DIR/handoff/_TEMPLATE.md" "$TARGET_DIR/handoff/_TEMPLATE.md" && printf '    handoff/_TEMPLATE.md\n' || true
 }
 
 # ── post-install hints ─────────────────────────────────────────────────
 
 post_install_hints() {
   printf '\n════════════ 后续步骤 ════════════\n'
-  if [[ "$TARGET_TYPE" == "opencode" ]]; then
-    printf '1. 编辑 %s/%s\n' "$TARGET_DIR" "$CONFIG_FILE"
-    printf '   替换 {env:OPENAI_API_KEY} 和 ~/ 路径为本机实际值\n'
-  else
-    printf '1. 编辑 %s/%s\n' "$TARGET_DIR" "$CONFIG_FILE"
-    printf '   填入 token、provider 与本机路径\n'
-  fi
-  printf '2. 阅读 %s/AGENTS.md 了解治理结构\n' "$TARGET_DIR"
-  printf '3. 浏览 rules/ai/、workflows/ai/、references/ai/\n'
-  if [[ "$INIT_STATE" != "true" ]]; then
-    printf '4. 如需初始化状态文件，追加 --init-state 重新运行\n'
-  fi
+  case "$TARGET_TYPE" in
+    opencode)
+      printf '1. 编辑 %s/opencode.json\n' "$TARGET_DIR"
+      printf '   替换 {env:VAR} 占位符和 MCP 路径为本机实际值\n'
+      ;;
+    codex)
+      printf '1. 编辑 %s/config.toml\n' "$TARGET_DIR"
+      printf '   填入 token 与 provider 配置\n'
+      ;;
+    cursor)
+      printf '1. 查看 %s/.cursorrules\n' "$TARGET_DIR"
+      printf '2. 重启 Cursor 使其生效\n'
+      ;;
+    claude)
+      printf '1. 查看 %s/CLAUDE.md\n' "$TARGET_DIR"
+      printf '2. 重启 Claude Code 使其生效\n'
+      ;;
+    copilot)
+      printf '1. 查看 %s/.github/copilot-instructions.md\n' "$TARGET_DIR"
+      printf '2. 提交到 Git 仓库使 GitHub Copilot 生效\n'
+      ;;
+  esac
+  [[ "$INIT_STATE" != "true" ]] && printf '3. 如需初始化状态文件，追加 --init-state 重新运行\n'
 }
 
 post_update_hints() {
   printf '\n════════════ 后续步骤 ════════════\n'
   printf '1. 检查更新后的 AGENTS.md 与规则文件\n'
-  printf '2. 确认 live 状态文件 (AI_GUIDE.md, CURRENT_TASK.md, DECISIONS.md) 仍正确\n'
-  if [[ "$TARGET_TYPE" == "opencode" ]]; then
-    printf '3. 仅当 provider 或路径变更时才编辑 %s\n' "$CONFIG_FILE"
-  fi
+  printf '2. 确认 live 状态文件仍正确\n'
 }
 
 # ── main ───────────────────────────────────────────────────────────────
 
-if [[ "$MODE" == "install" ]]; then
-  if [[ "$DRY_RUN" == "true" ]]; then
-    install_dry_run
-    exit 0
-  fi
-  printf '════════════════════════════════════\n'
-  printf '安装 portable runtime pack\n'
-  printf '  目标: %s (%s)\n' "$TARGET_DIR" "$TARGET_TYPE"
-  printf '════════════════════════════════════\n'
-  install_all
-  if [[ "$INIT_STATE" == "true" ]]; then
-    init_state_files
-  fi
-  printf '\n安装完成。\n'
-  post_install_hints
-else
-  if [[ "$DRY_RUN" == "true" ]]; then
-    update_dry_run
-    exit 0
-  fi
+if [[ "$DRY_RUN" == "true" ]]; then
+  [[ "$MODE" == "update" ]] && update_dry_run || install_dry_run
+  exit 0
+fi
 
+if [[ "$MODE" == "update" ]]; then
   if [[ ! -d "$TARGET_DIR" ]]; then
-    printf '════════════════════════════════════\n'
     printf '目标目录不存在，执行全新安装\n'
-    printf '  目标: %s (%s)\n' "$TARGET_DIR" "$TARGET_TYPE"
-    printf '════════════════════════════════════\n'
     install_all
-    if [[ "$INIT_STATE" == "true" ]]; then
-      init_state_files
-    fi
-    printf '\n安装完成。\n'
-    post_install_hints
   else
     printf '════════════════════════════════════\n'
     printf '更新 portable runtime governance\n'
@@ -331,5 +299,19 @@ else
     update_all
     printf '\n更新完成。\n'
     post_update_hints
+    exit 0
   fi
+else
+  printf '════════════════════════════════════\n'
+  printf '安装 portable runtime pack\n'
+  printf '  目标: %s (%s)\n' "$TARGET_DIR" "$TARGET_TYPE"
+  printf '════════════════════════════════════\n'
+  install_all
 fi
+
+if [[ "$INIT_STATE" == "true" ]]; then
+  init_state_files
+fi
+
+printf '\n安装完成。\n'
+post_install_hints

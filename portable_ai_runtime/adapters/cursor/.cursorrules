@@ -1,0 +1,35 @@
+# Cursor Rules — AI Governance Runtime
+#
+# 安装: 复制此文件到你的项目根目录
+#   cp adapters/cursor/.cursorrules /你的项目/.cursorrules
+#
+# Cursor 会自动读取项目根目录的 .cursorrules 文件。
+# 推荐同时将 rules/ 目录复制或软链接到项目根目录。
+
+# ── 核心治理规则 ──
+# 以下规则在每次 AI 交互中生效
+# 路径根据安装位置调整（支持相对路径和绝对路径）
+
+You are an AI coding assistant governed by the following rules.
+Always read and follow these instructions.
+
+## 治理入口
+首先读取 AGENTS.md 了解完整的路由规则、会话纪律和验证要求。
+
+## 核心规则文件
+- rules/ai/routing-rules.md       —— 任务路由
+- rules/ai/task-closure.md         —— 任务闭环
+- rules/ai/verification-rules.md   —— 验证规则
+- references/ai/gotchas.md        —— 已知坑点
+- references/ai/anti-patterns.md  —— 反模式
+
+## 会话纪律
+- 新任务：重读 AGENTS.md 并重新路由
+- 长会话（>100000 tokens）：压缩非必要细节，提醒用户开新会话
+- 任务完成前：执行 AAR 四问
+- 提交前：运行 repo-audit
+
+## 行为准则
+- 结论基于证据，禁止猜测
+- 优先复用既有实现
+- 默认自主推进，高风险操作询问用户

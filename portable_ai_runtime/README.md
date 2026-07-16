@@ -1,60 +1,65 @@
-# Portable AI Runtime Pack
+# Portable AI Runtime — 可移植 AI 治理运行时
 
-可移植 AI runtime 配置包，覆盖 OpenCode (`~/.config/opencode/`) 与 Codex CLI (`~/.codex/`) 的治理规则、技能、模板与主配置骨架。
+一套工具无关的 AI 行为治理规则，适配 OpenCode、Codex CLI、Cursor、Claude Code、GitHub Copilot。
 
-## 目录说明
+## 快速开始
 
-- `portable_dotcodex/`：runtime pack 主体。
-- `portable_dotcodex/opencode.template.jsonc`：脱敏后的 OpenCode 主配置模板，需手动补 API key 与本机路径。
-- `portable_dotcodex/config.template.toml`：脱敏后的 Codex `config.toml` 模板。
-- `portable_dotcodex/agents/`：OpenCode agent 定义（coder, reviewer, vibe-plan 等 6 个）。
-- `portable_dotcodex/commands/`：OpenCode command 模板（8 个）。
-- `portable_dotcodex/scripts/`：治理验证脚本（含 ai-governance-smoke-check、ai-trigger-check、check-vibe-config-paths、plugin-status-check、git-hooks）。
-- `portable_dotcodex/skills/`：OpenCode 技能（brainstorming, vibe, writing-plans 等 19 个）。
-- `portable_dotcodex/rules/ai/`：正式治理规则（9 个）。
-- `portable_dotcodex/workflows/ai/`：任务工作流（8 个）。
-- `portable_dotcodex/references/ai/`：参考样本与 trigger 对照（10 个）。
-- `portable_dotcodex/state-templates/`：`AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 模板（含 AI 生成标记头部）。
-- `portable_dotcodex/plugins/`：运行时插件（session-governance.ts）。
-- `portable_dotcodex/templates/`：结构化模板（skill/SKILL.md、shells/AGENTS.md、protocol-blocks/、ANTI-TEMPLATES.md）。
-- `portable_dotcodex/gitignore.template`：`.gitignore` 模板。
-- `excluded/`：故意排除的内容说明。
-- `install.sh`：可选安装脚本。
+```bash
+git clone git@github.com:Innnoa/zazaki_config.git
+cd zazaki_config/portable_ai_runtime
 
-## 已包含
+# 安装到目标工具
+./install.sh opencode install      # OpenCode CLI
+./install.sh codex    install      # Codex CLI
+./install.sh cursor   install ~/my-project    # Cursor（项目级）
+./install.sh claude   install ~/my-project    # Claude Code（项目级）
+./install.sh copilot  install ~/my-project    # GitHub Copilot（项目级）
+```
 
-- `AGENTS.md`、`opencode.template.jsonc`、`config.template.toml`、`settings.json`、`gitignore.template`
-- `agents/`（6 个 agent 定义）、`commands/`（8 个 command 模板）、`scripts/`（5 个治理脚本 + git-hooks）、`plugins/`（session-governance.ts）
-- `skills/`（19 个技能：brainstorming, codex-session-audit, context-handoff, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, session-restart-prompt, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, vibe, writing-plans, writing-skills）
-- `rules/ai/`（9 个）、`workflows/ai/`（8 个）、`references/ai/`（10 个）
-- `mcp/profiles/`、`mcp/servers.active.json`
-- `prompts/security_mode.md`、`templates/`（结构化模板：ANTI-TEMPLATES.md、skill/SKILL.md、shells/AGENTS.md、protocol-blocks/）、`handoff/TEMPLATE.md`、`handoff/_TEMPLATE.md`
-- `state-templates/`（含 AI 生成标记头部）、`docs/governance/`、`docs/plans/`、`docs/requirements/`
+## 目录结构
 
-## 未包含
+```
+portable_ai_runtime/
+├── AGENTS.md                  # 通用治理入口
+├── rules/ai/                  # 核心路由规则（7 文件）
+├── workflows/ai/              # 执行工作流（5 文件）
+├── references/ai/             # 参考文档（8 文件）
+├── skills/                    # 共享技能（22 个）
+├── scripts/                   # 治理验证脚本
+├── templates/                 # 状态文件模板
+│
+├── opencode/                  # OpenCode 适配器
+│   ├── opencode.template.jsonc
+│   ├── plugins/ agents/ commands/ mcp/
+│   └── README.md
+│
+├── adapters/
+│   ├── codex/                 # Codex CLI 适配器
+│   ├── cursor/                # Cursor 适配器 (.cursorrules)
+│   ├── claude-code/           # Claude Code 适配器 (CLAUDE.md)
+│   └── copilot/               # GitHub Copilot 适配器
+│
+├── install.sh                 # 一键安装脚本
+└── README.md
+```
 
-- 真实 API key、token、密钥和敏感字段
-- `node_modules/`、`package.json`、`package-lock.json`
-- `provider-secrets.env`
-- `.serena/`、`.agents/`、`.codex/`
-- 当前机器的 `AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 实时内容
-- 当前机器的 `handoff/` 实时内容
-- `skills/vibe/bundled/`（28MB 自动下发的子技能，vibe 运行时会自动补齐）
-- `skills/vibe/outputs/`（运行时产物）
-- `skills/vibe/config/*.json`（机器特定的路径引用）
-- `outputs/runtime/`（运行时回执等产物）
-- Codex 的 `[projects."..."] trust_level` 清单
+## 核心能力
 
-## 建议用法
+- **任务路由**：根据任务类型自动选择 workflow（修 bug / 新功能 / 审查 / vibe）
+- **AAR 闭环**：任务完成后强制四问检查，积累可复用经验
+- **会话管理**：token 预算控制，长会话自动预警
+- **验证链**：smoke check → trigger check → route refs → token budgets → regression test
+- **多工具适配**：一套核心规则，通过轻量 adapter 接入不同 AI 工具
 
-1. 把整个 `portable_ai_runtime/` 目录带到新设备。
-2. 新环境执行 `./install.sh install [target_dir] [--init-state] [--dry-run]`；已有环境升级执行 `./install.sh update [target_dir] [--dry-run]`。
-3. 复制 `opencode.template.jsonc` 为 `opencode.json`，补齐 API key 和本机 MCP 路径。
-4. 复制 `config.template.toml` 为 `config.toml`，补齐 Codex token 与本机项目路径。
-5. 若要理解治理系统结构，优先阅读 `AGENTS.md`、`rules/ai/`、`workflows/ai/`。
+## 验证
 
-## 更新边界
+```bash
+./scripts/regression-test.sh   # 运行完整验证链
+```
 
-- `update` 默认不覆盖 `opencode.json`、`config.toml`
-- `update` 默认不覆盖 live `AI_GUIDE.md`、`CURRENT_TASK.md`、`DECISIONS.md` 与 `handoff/`
-- `skills/vibe/bundled/` 不在包内，vibe 运行时会自行补齐
+## 定制
+
+安装后编辑对应工具的配置文件：
+- OpenCode: `~/.config/opencode/opencode.json`（替换 API key 和 MCP 路径）
+- Codex: `~/.codex/config.toml`
+- Cursor/Claude/Copilot: 直接编辑项目目录下的入口文件
