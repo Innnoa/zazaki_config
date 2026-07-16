@@ -9,7 +9,7 @@ phrase	expected_route	expected_anchor_file	expected_anchor_text	note
 准备提交前帮我确认一下还有没有缺口	verification-before-completion	rules/ai/routing-rules.md	提交前完成确认：应用 `rules/ai/verification-rules.md`	提交前验证样本
 这个任务很复杂，直接用 vibe 跑	vibe	rules/ai/routing-rules.md	用户明确提到 `vibe`，或任务涉及多文件修改、跨轮跟踪、需要冻结 requirement / plan、或需要更强验证闭环的任务：必须走 `vibe`	显式 vibe 路由样本
 这个要跨轮推进，而且后面还要冻结计划	vibe	rules/ai/routing-rules.md	用户明确提到 `vibe`，或任务涉及多文件修改、跨轮跟踪、需要冻结 requirement / plan、或需要更强验证闭环的任务：必须走 `vibe`	长链路 vibe 路由样本
-这次只是小补充，不算新任务	Session Discipline	rules/ai/session-discipline.md	这次只是小补充，不算新任务	重路由借口拦截样本
+这次只是小补充，不算新任务	Session Discipline	AGENTS.md	这次只是小补充，不算新任务	重路由借口拦截样本
 压缩后应该还记得	Session Discipline	AGENTS.md	压缩后应该还记得	压缩后借口拦截样本
 超过 15w 就提醒我开新会话	会话预算规则	references/ai/session-budget-rules.md	150000 tokens	长会话强提醒样本
 Context 35253 tokens	会话预算观察	references/ai/trigger-phrases.md	会话预算观察	会话预算观察样本

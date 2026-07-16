@@ -1,0 +1,31 @@
+# ============================================================
+# AI-Generated Artifact Exclusion Template
+# ============================================================
+# 与 repo-audit 双重检测途径对齐：
+#   1. 静态路径模式（本文件中的条目）
+#   2. 动态标记扫描（文件首行 <!-- ai-generated 的也会被拦截）
+#
+# 权威源：templates/gitignore/ai-artifacts.gitignore
+#
+# 安装 pre-commit hook（推荐）：
+#   ln -s ~/.config/opencode/scripts/git-hooks/pre-commit .git/hooks/pre-commit
+# ============================================================
+
+# --- AI 状态文件（带 ai-generated 标记，不能入库） ---
+AI_GUIDE.md
+CURRENT_TASK.md
+DECISIONS.md
+
+# --- AI 设计/规划产物 ---
+docs/superpowers/
+
+# --- AI 会话交接材料 ---
+handoff/
+
+# --- AI 工具运行时目录 ---
+.codex/
+.claude/
+.serena/
+
+# --- AI 运行时产物 ---
+outputs/runtime/

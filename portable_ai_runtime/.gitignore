@@ -1,0 +1,6 @@
+# Runtime artifacts (outside portable_dotcodex/)
+outputs/
+
+# System files
+.DS_Store
+Thumbs.db

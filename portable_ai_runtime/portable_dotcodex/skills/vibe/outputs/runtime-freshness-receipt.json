@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-04-08T02:07:25Z",
+  "gate_result": "PASS",
+  "release": {
+    "version": "3.0.0",
+    "updated": "2026-04-07"
+  },
+  "target_root": "/home/zazaki/.codex",
+  "installed_root": "/home/zazaki/.codex/skills/vibe",
+  "receipt_version": 1
+}

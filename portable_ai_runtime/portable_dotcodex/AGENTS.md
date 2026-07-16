@@ -1,5 +1,5 @@
-# AGENTS.md — OpenCode 工作规则（/home/zazaki）
-适用目录：`/home/zazaki`
+# AGENTS.md — OpenCode 工作规则（$HOME）
+适用目录：`$HOME`
 ## 优先级
 - 更近层级的 `AGENTS.md` 优先
 - 其次遵循本文件，再其次遵循项目文档与 OpenCode 默认行为
@@ -14,21 +14,21 @@
 - 文件路径写正常文本，不做可点击链接；`150000 tokens` 以上的最终回答要追加固定提醒：`上下文已超过 150000 tokens，请开启新会话。`
 ### Always Read
 - 非纯信息问答任务：先读 `AGENTS.md`
-- 再读 `rules/ai/session-discipline.md`、`rules/ai/routing-rules.md`
+- 再读 `rules/ai/routing-rules.md`
 - 需要验证时再读 `rules/ai/verification-rules.md`
 - 治理系统变更时，再读对应 `workflows/ai/` 与必要 `references/ai/`
 ### Session Discipline
 - 每个新任务都必须重新读取入口并重新路由
 - 长会话、压缩、任务类型切换时，视为强制重路由点；`100000 tokens` 进入预警态，`150000 tokens` 进入强提醒态
-- 详细规则以 `rules/ai/session-discipline.md`、`references/ai/session-budget-rules.md` 为准
+- 详细规则以 `rules/ai/routing-rules.md` 的"会话纪律"部分、`references/ai/session-budget-rules.md` 为准
 ### Quick Routing
 
 | Task | Required Reads | Workflow |
 | --- | --- | --- |
-| Bug fix / test failure / build failure | `rules/ai/routing-rules.md` | `systematic-debugging` → `workflows/ai/fix-bug.md` |
+| Bug fix / test failure / build failure | `rules/ai/routing-rules.md` | `systematic-debugging` → `workflows/ai/fix-and-review.md` |
 | New feature / behavior change / exploration | `rules/ai/routing-rules.md` | `brainstorming` |
-| Has spec, multi-step, multi-file | `rules/ai/routing-rules.md` | `writing-plans` → `workflows/ai/implement-feature.md` |
-| Code review | `workflows/ai/review.md` | `requesting-code-review` → `workflows/ai/review.md` |
+| Has spec, multi-step, multi-file | `rules/ai/routing-rules.md` | `writing-plans` → `workflows/ai/plan-and-implement.md` |
+| Code review | `workflows/ai/fix-and-review.md` | `requesting-code-review` → `workflows/ai/fix-and-review.md` |
 | Vibe (multi-file, cross-turn, frozen req/plan) | `skills/vibe/SKILL.md` | `vibe` |
 | Multi-subtask | `workflows/ai/subagent-routing.md` | `subagent-driven-development` |
 | Governance change | `workflows/ai/check-governance-consistency.md` | `customize-opencode` |

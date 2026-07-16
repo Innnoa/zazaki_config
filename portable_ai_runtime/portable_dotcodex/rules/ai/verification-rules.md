@@ -33,7 +33,7 @@
 - 如果本次修改涉及会话 token 预算、长会话压缩行为、提醒文案或开新会话规则，必须同时验证三层是否对齐：顶层入口、正式规则、验证模板。
 - 如果当前环境没有可编程 hook 或无法直接读取运行时 token 计数，不得把这类变更误报成“已建立强制运行时门禁”；应明确标记为“治理约束已接入，运行时执行依赖 host 暴露的上下文计数信息”。
 - 如果本次还修改了 `AGENTS.md` 或 `opencode.json`，优先同时跑一遍 `references/ai/governance-smoke-check.md` 中的入口块、注入路径和阈值冲突检查。
-- 如果本次已经新增了脚本实现，优先同时跑 `scripts/ai-governance-smoke-check.sh` 和 `scripts/ai-trigger-check.sh`，把文档检查和机械检查都覆盖到。
+- 如果本次已经新增了脚本实现，优先同时跑 `scripts/ai-governance-smoke-check.sh`、`scripts/ai-trigger-check.sh`、`scripts/test-trigger.sh` 和 `scripts/regression-test.sh`，把文档检查和机械检查都覆盖到。
 - 如果本次修改涉及 `skills/vibe/config/*.json` 的路径边界、install-time projection、external-tooling 证据面或 canonical vs installed 资产判定，额外运行 `scripts/check-vibe-config-paths.py`。
 
 ### 静态编辑 vs 运行时生效变更

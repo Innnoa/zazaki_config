@@ -1,0 +1,58 @@
+{
+  "gate": "vibe-router-ai-connectivity-gate",
+  "generated_at": "2026-04-08T03:03:10Z",
+  "repo_root": "/home/zazaki/.codex/skills/vibe",
+  "target_root": "/home/zazaki/.codex",
+  "advisory_only": true,
+  "route_mutation": false,
+  "scope": {
+    "status": "scope_applicable",
+    "reasons": [
+      "scope_match"
+    ],
+    "prefix_detected": true,
+    "grade": "M",
+    "task_type": "coding",
+    "route_mode": "legacy_fallback"
+  },
+  "advice": {
+    "status": "ok",
+    "provider_type": "openai",
+    "model": "gpt-5.4",
+    "base_url": "https://yunyi.rdzhvip.com/codex",
+    "credential_env": "VCO_INTENT_ADVICE_API_KEY",
+    "credential_state": "configured",
+    "attempts": [
+      {
+        "endpoint_kind": "responses",
+        "status_code": 200,
+        "error_kind": null,
+        "latency_ms": 2424,
+        "outcome": "parse_error"
+      },
+      {
+        "endpoint_kind": "chat_completions",
+        "status_code": 200,
+        "error_kind": null,
+        "latency_ms": 2676,
+        "outcome": "ok"
+      }
+    ],
+    "endpoint_used": "chat_completions"
+  },
+  "vector_diff": {
+    "status": "vector_diff_not_configured",
+    "availability_state": "not_configured",
+    "provider_type": "openai-compatible",
+    "attempts": []
+  },
+  "next_steps": [
+    "If needed, enable `context.vector_diff` and set `embedding_model` or `VCO_VECTOR_DIFF_MODEL` plus vector provider config."
+  ],
+  "summary": {
+    "advice_status": "ok",
+    "vector_diff_status": "vector_diff_not_configured",
+    "gate_result": "PASS",
+    "warning_count": 0
+  }
+}

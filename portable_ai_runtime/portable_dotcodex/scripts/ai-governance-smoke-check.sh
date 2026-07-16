@@ -28,7 +28,6 @@ for block in required_blocks:
 config = json.loads((root / "opencode.json").read_text(encoding="utf-8"))
 instructions = config.get("instructions", [])
 required_instructions = [
-    "~/.config/opencode/rules/*.md",
     "~/.config/opencode/rules/ai/*.md",
 ]
 for item in required_instructions:
@@ -36,7 +35,6 @@ for item in required_instructions:
         errors.append(f"opencode.json missing instruction path: {item}")
 
 smoke_files = [
-    root / "rules" / "ai" / "session-discipline.md",
     root / "references" / "ai" / "session-budget-rules.md",
     root / "references" / "ai" / "governance-smoke-check.md",
     root / "plugins" / "session-governance.ts",
@@ -97,7 +95,6 @@ for path, limit in high_frequency_skill_limits.items():
 
 config_text = (root / "opencode.json").read_text(encoding="utf-8")
 required_env_markers = [
-    "{env:MIMO_API_KEY}",
     "{env:FASTAICODE_API_KEY}",
     "{env:BRAVE_API_KEY}",
     "{env:DEEPSEEK_API_KEY}",
