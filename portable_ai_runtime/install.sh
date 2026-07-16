@@ -133,24 +133,34 @@ interactive_menu() {
     # ── 1. 选工具 ──
     choose_tool
 
-    # ── 2. 选操作 (OpenCode/Codex only) ──
+    # ── 2. 选操作 (所有工具统一显示) ──
     if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
       if ! choose_mode; then
-        continue  # 返回 → 重新选工具
+        continue
       fi
-
       if [[ "$MODE" == "install" ]]; then
         echo ""
         read -r -p "初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: " init_choice
         [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
       fi
     else
+      # 项目工具：仅安装，跳过更新选项但保留统一结构
       MODE="install"
+      echo ""
+      printf '%s%s — 选择操作%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
+      printf '  符号链接安装，更新仓库即可同步规则\n'
+      PS3=$'\n选择操作: '
+      select op in "安装" "返回"; do
+        case "$REPLY" in
+          1) break ;;
+          2) continue 3 ;;  # 回到工具选择
+        esac
+      done
     fi
 
     # ── 3. 全局 or 项目 ──
     if ! choose_scope; then
-      continue  # 返回 → 重新选工具
+      continue
     fi
 
     # ── 4. 确认 ──
