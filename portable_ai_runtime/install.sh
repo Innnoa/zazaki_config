@@ -60,7 +60,7 @@ interactive_menu() {
 
   # -- choose tool --
   PS3=$'\n请选择目标工具: '
-  select tool in "OpenCode CLI (~/.config/opencode)" "Codex CLI (~/.codex)" "Cursor Rules (默认当前目录)" "Claude Code Rules (默认当前目录)" "GitHub Copilot (默认当前目录)" "退出"; do
+  select tool in "OpenCode CLI (~/.config/opencode)" "Codex CLI (~/.codex)" "Cursor Rules" "Claude Code Rules" "GitHub Copilot" "退出"; do
     case "$REPLY" in
       1) TARGET_TYPE="opencode"; break ;;
       2) TARGET_TYPE="codex";    break ;;
@@ -90,14 +90,18 @@ interactive_menu() {
   fi
 
   # -- choose target dir --
-  local default_dir
+  local default_dir hint
   case "$TARGET_TYPE" in
     opencode) default_dir="$HOME/.config/opencode" ;;
     codex)    default_dir="$HOME/.codex" ;;
-    *)        default_dir="$PWD" ;;
+    cursor)   hint="项目目录或 ~（全局）"   ; default_dir="$HOME" ;;
+    claude)   hint="项目目录或 ~/.claude（全局）" ; default_dir="$HOME/.claude" ;;
+    copilot)  hint="项目目录"             ; default_dir="$PWD" ;;
   esac
 
-  read -r -p $'\n目标目录 ['"$default_dir"']: ' dir_input
+  printf '\n%s说明:%s OpenCode CLI 全局安装到 ~/.config/opencode/，无需在每个项目重复安装。\n' "$CYAN" "$RESET"
+  printf 'Cursor / Claude / Copilot 安装到项目根目录（仅该项目生效）或 ~（全局生效）。\n'
+  read -r -p $'\n目标目录 '["$hint"]' ['"$default_dir"']: ' dir_input
   TARGET_DIR="${dir_input:-$default_dir}"
 
   # -- confirm --
@@ -129,7 +133,8 @@ if [[ -z "$TARGET_DIR" ]]; then
   case "$TARGET_TYPE" in
     opencode) TARGET_DIR="$HOME/.config/opencode" ;;
     codex)    TARGET_DIR="$HOME/.codex" ;;
-    *)        TARGET_DIR="$PWD" ;;
+    claude)   TARGET_DIR="$HOME/.claude" ;;
+    *)        TARGET_DIR="$HOME" ;;
   esac
 fi
 
