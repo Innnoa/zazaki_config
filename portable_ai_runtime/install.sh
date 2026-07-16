@@ -74,6 +74,7 @@ fi
 
 safe_copy_dir() { mkdir -p "$2"; cp -R "$1/." "$2/"; }
 copy_if_missing() { [[ -f "$2" ]] || cp "$1" "$2"; }
+safe_link_dir() { [[ -L "$2" || -d "$2" ]] && rm -rf "$2"; ln -s "$1" "$2"; }
 
 # ── core rule dirs (shared across all tools) ───────────────────────────
 
@@ -106,7 +107,24 @@ copy_core() {
   fi
 }
 
-# ── install ────────────────────────────────────────────────────────────
+# ── symlink-based install (project-level adapters) ─────────────────────
+
+symlink_core() {
+  local dest="$1"
+  printf '  链接核心治理规则...\n'
+  for d in "${CORE_DIRS[@]}"; do
+    if [[ -d "$PACK_DIR/$d" ]]; then
+      safe_link_dir "$PACK_DIR/$d" "$dest/$d"
+      printf '    已链接: %s\n' "$d"
+    fi
+  done
+  for f in "${CORE_FILES[@]}"; do
+    if [[ -f "$PACK_DIR/$f" ]]; then
+      safe_link_dir "$PACK_DIR/$f" "$dest/$f"
+      printf '    已链接: %s\n' "$f"
+    fi
+  done
+}
 
 install_all() {
   mkdir -p "$TARGET_DIR"
@@ -147,19 +165,22 @@ install_all() {
       ;;
     cursor)
       cp "$PACK_DIR/adapters/cursor/.cursorrules" "$TARGET_DIR/.cursorrules"
-      copy_core "$TARGET_DIR"
-      printf '  已安装: .cursorrules + 核心规则\n'
+      symlink_core "$TARGET_DIR"
+      echo -e "\n# AI governance symlinks (managed by portable_ai_runtime)\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      printf '  已安装: .cursorrules + 核心规则 (符号链接)\n'
       ;;
     claude)
       cp "$PACK_DIR/adapters/claude-code/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-      copy_core "$TARGET_DIR"
-      printf '  已安装: CLAUDE.md + 核心规则\n'
+      symlink_core "$TARGET_DIR"
+      echo -e "\n# AI governance symlinks (managed by portable_ai_runtime)\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      printf '  已安装: CLAUDE.md + 核心规则 (符号链接)\n'
       ;;
     copilot)
       mkdir -p "$TARGET_DIR/.github"
       cp "$PACK_DIR/adapters/copilot/copilot-instructions.md" "$TARGET_DIR/.github/copilot-instructions.md"
-      copy_core "$TARGET_DIR"
-      printf '  已安装: .github/copilot-instructions.md + 核心规则\n'
+      symlink_core "$TARGET_DIR"
+      echo -e "\n# AI governance symlinks (managed by portable_ai_runtime)\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      printf '  已安装: .github/copilot-instructions.md + 核心规则 (符号链接)\n'
       ;;
   esac
 }
@@ -176,6 +197,7 @@ install_dry_run() {
   pack 源    : $PACK_DIR
 
   将安装核心治理规则和 $TARGET_TYPE 适配器。
+  （opencode/codex 使用文件复制，cursor/claude/copilot 使用符号链接）
 DRY
   printf '\n'
 }
@@ -261,14 +283,17 @@ post_install_hints() {
     cursor)
       printf '1. 查看 %s/.cursorrules\n' "$TARGET_DIR"
       printf '2. 重启 Cursor 使其生效\n'
+      printf '\n核心规则通过符号链接引用，更新仓库即自动同步到本项目。\n'
       ;;
     claude)
       printf '1. 查看 %s/CLAUDE.md\n' "$TARGET_DIR"
       printf '2. 重启 Claude Code 使其生效\n'
+      printf '\n核心规则通过符号链接引用，更新仓库即自动同步到本项目。\n'
       ;;
     copilot)
       printf '1. 查看 %s/.github/copilot-instructions.md\n' "$TARGET_DIR"
       printf '2. 提交到 Git 仓库使 GitHub Copilot 生效\n'
+      printf '\n核心规则通过符号链接引用，更新仓库即自动同步到本项目。\n'
       ;;
   esac
   [[ "$INIT_STATE" != "true" ]] && printf '3. 如需初始化状态文件，追加 --init-state 重新运行\n'
