@@ -44,14 +44,14 @@ INSTALL_METHOD=""
 if [[ $# -gt 0 ]]; then
   TARGET_TYPE="${1:-}"
   MODE="${2:-}"
-  for arg in "${@:3}"; do
-    case "$arg" in
-      --init-state) INIT_STATE="true" ;;
-      --dry-run)    DRY_RUN="true"    ;;
-      -*)           printf '未知选项: %s\n' "$arg"; usage ;;
-      *)            TARGET_DIR="$arg"  ;;
-    esac
-  done
+for arg in "${@:3}"; do
+  case "$arg" in
+    --init-state) INIT_STATE="true" ;;
+    --dry-run)    DRY_RUN="true"    ;;
+    -*)           printf '未知选项: %s\n' "$arg"; usage ;;
+    *)            TARGET_DIR="${arg/#\~/$HOME}" ;;  # expand ~
+  esac
+done
 fi
 
 # ── interactive mode ───────────────────────────────────────────────────
@@ -126,6 +126,7 @@ choose_scope() {
         2)
           while true; do
             read -r -p $'\n输入项目根目录路径: ' dir_input
+            dir_input="${dir_input/#\~/$HOME}"   # expand ~
             if [[ -n "$dir_input" ]]; then
               TARGET_DIR="$dir_input"
               INSTALL_METHOD="symlink"
