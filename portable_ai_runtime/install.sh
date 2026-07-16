@@ -60,7 +60,7 @@ interactive_menu() {
 
   # -- choose tool --
   PS3=$'\n请选择目标工具: '
-  select tool in "OpenCode CLI" "Codex CLI" "Cursor (项目级)" "Claude Code (项目级)" "GitHub Copilot (项目级)" "退出"; do
+  select tool in "OpenCode CLI (~/.config/opencode)" "Codex CLI (~/.codex)" "Cursor Rules" "Claude Code Rules" "GitHub Copilot" "退出"; do
     case "$REPLY" in
       1) TARGET_TYPE="opencode"; break ;;
       2) TARGET_TYPE="codex";    break ;;

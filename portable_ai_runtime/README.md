@@ -22,14 +22,16 @@ cd zazaki_config/portable_ai_runtime
 ./install.sh codex    install        # → ~/.codex/
 ```
 
-### 项目级工具（符号链接安装）
+### 项目/全局工具（符号链接安装）
 
-只在项目目录放一个入口文件，核心规则通过符号链接引用。更新仓库一次，所有项目自动同步：
+只在目标目录放一个入口文件，核心规则通过符号链接引用。更新仓库一次，所有安装自动同步：
 
 ```bash
-./install.sh cursor  install ~/my-project       # → .cursorrules + 符号链接
-./install.sh claude  install ~/my-project       # → CLAUDE.md + 符号链接
-./install.sh copilot install ~/my-project       # → .github/copilot-instructions.md + 符号链接
+./install.sh cursor  install ~/my-project     # Cursor: 项目目录 → .cursorrules
+./install.sh cursor  install ~                # Cursor: 全局 → ~/.cursorrules
+./install.sh claude  install ~/my-project     # Claude: 项目目录 → CLAUDE.md
+./install.sh claude  install ~/.claude        # Claude: 全局 → ~/.claude/CLAUDE.md
+./install.sh copilot install ~/my-project     # Copilot: .github/copilot-instructions.md
 ```
 
 以上命令也支持交互模式（`./install.sh` 回车后选 3/4/5）。
@@ -99,8 +101,8 @@ portable_ai_runtime/
   仓库 → 复制 core/ + 工具配置 → ~/.config/opencode/
   工具自行读取其配置目录下的文件。
 
-项目级 (cursor/claude/copilot):
-  仓库 → 入口文件复制 + core/ 符号链接 → 项目目录
-  工具读取入口文件 → 通过相对路径引用 core/ 规则。
-  git pull 仓库 → 所有项目自动获得最新规则。
+Cursor / Claude Code / Copilot:
+  仓库 → 入口文件 + core/ 符号链接 → 目标目录
+  可以是项目目录（仅该项目生效）或全局目录（所有项目生效）。
+  git pull 仓库 → 所有安装自动获得最新规则。
 ```
