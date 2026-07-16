@@ -60,8 +60,17 @@ tool_default_dir() {
   case "$1" in
     opencode) echo "$HOME/.config/opencode" ;;
     codex)    echo "$HOME/.codex" ;;
-    claude)   echo "$HOME/.claude" ;;
     *)        echo "$HOME" ;;
+  esac
+}
+
+tool_global_desc() {
+  case "$1" in
+    opencode) echo "~/.config/opencode（OpenCode 配置目录）" ;;
+    codex)    echo "~/.codex（Codex 配置目录）" ;;
+    cursor)   echo "~/.cursorrules（Cursor 全局规则）" ;;
+    claude)   echo "~/.claude/CLAUDE.md（Claude Code 全局规则）" ;;
+    copilot)  echo "不支持全局，请选项目安装" ;;
   esac
 }
 
@@ -101,15 +110,16 @@ choose_mode() {
 
 # Returns 0 if user selected global/project, 1 if "返回"
 choose_scope() {
-  local global_dir
+  local global_dir desc
   global_dir="$(tool_default_dir "$TARGET_TYPE")"
+  desc="$(tool_global_desc "$TARGET_TYPE")"
 
   while true; do
     echo ""
-    printf '%s%s — 安装范围%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
-    printf '  全局: 安装在 %s（所有项目共用，文件复制）\n' "$global_dir"
-    printf '  项目: 指定项目目录（仅该项目生效，符号链接）\n'
-    PS3=$'\n选择范围: '
+    printf '%s%s — 安装方式%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
+    printf '  全局: %s（文件复制，所有项目生效）\n' "$desc"
+    printf '  项目: 指定项目目录（符号链接，仅该项目生效）\n'
+    PS3=$'\n选择: '
     select sc in "全局安装" "项目安装" "返回"; do
       case "$REPLY" in
         1) TARGET_DIR="$global_dir"; INSTALL_METHOD="copy";   return 0 ;;
