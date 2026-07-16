@@ -39,6 +39,7 @@ MODE=""
 TARGET_DIR=""
 INIT_STATE="false"
 DRY_RUN="false"
+INSTALL_METHOD=""
 
 if [[ $# -gt 0 ]]; then
   TARGET_TYPE="${1:-}"
@@ -106,17 +107,18 @@ choose_scope() {
   while true; do
     echo ""
     printf '%s%s — 安装范围%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
-    printf '  全局: 安装在 %s（所有项目共用）\n' "$global_dir"
-    printf '  项目: 指定项目目录（仅该项目生效）\n'
+    printf '  全局: 安装在 %s（所有项目共用，文件复制）\n' "$global_dir"
+    printf '  项目: 指定项目目录（仅该项目生效，符号链接）\n'
     PS3=$'\n选择范围: '
     select sc in "全局安装" "项目安装" "返回"; do
       case "$REPLY" in
-        1) TARGET_DIR="$global_dir"; return 0 ;;
+        1) TARGET_DIR="$global_dir"; INSTALL_METHOD="copy";   return 0 ;;
         2)
           while true; do
             read -r -p $'\n输入项目根目录路径: ' dir_input
             if [[ -n "$dir_input" ]]; then
               TARGET_DIR="$dir_input"
+              INSTALL_METHOD="symlink"
               return 0
             fi
             echo "路径不能为空"
@@ -133,29 +135,23 @@ interactive_menu() {
     # ── 1. 选工具 ──
     choose_tool
 
-    # ── 2. 选操作 (所有工具统一显示) ──
-    if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
-      if ! choose_mode; then
-        continue
-      fi
-      if [[ "$MODE" == "install" ]]; then
-        echo ""
-        read -r -p "初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: " init_choice
-        [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
-      fi
-    else
-      # 项目工具：仅安装，跳过更新选项但保留统一结构
-      MODE="install"
+    # ── 2. 选操作 (所有工具统一) ──
+    echo ""
+    printf '%s%s — 选择操作%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
+    printf '  全局安装: 文件复制，独立运行\n'
+    printf '  项目安装: 符号链接，仓库更新即同步\n'
+    PS3=$'\n选择操作: '
+    select op in "安装" "返回"; do
+      case "$REPLY" in
+        1) break ;;
+        2) continue 3 ;;  # 回到工具选择
+      esac
+    done
+
+    if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]] && [[ "$MODE" != "update" ]]; then
       echo ""
-      printf '%s%s — 选择操作%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
-      printf '  符号链接安装，更新仓库即可同步规则\n'
-      PS3=$'\n选择操作: '
-      select op in "安装" "返回"; do
-        case "$REPLY" in
-          1) break ;;
-          2) continue 3 ;;  # 回到工具选择
-        esac
-      done
+      read -r -p "初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: " init_choice
+      [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
     fi
 
     # ── 3. 全局 or 项目 ──
@@ -167,8 +163,8 @@ interactive_menu() {
     echo ""
     echo -e "${BOLD}确认安装:${RESET}"
     echo "  工具:     $TARGET_TYPE"
-    echo "  操作:     $MODE"
-    echo "  目标目录: $TARGET_DIR"
+    echo "  目录:     $TARGET_DIR"
+    echo "  方式:     $([[ "$INSTALL_METHOD" == "copy" ]] && echo "文件复制" || echo "符号链接")"
     [[ "$INIT_STATE" == "true" ]] && echo "  初始化:   是"
     read -r -p $'\n继续? [Y/n]: ' confirm
     [[ "$confirm" =~ ^[Nn]$ ]] && continue
@@ -199,6 +195,15 @@ if [[ -z "$TARGET_DIR" ]]; then
     claude)   TARGET_DIR="$HOME/.claude" ;;
     *)        TARGET_DIR="$HOME" ;;
   esac
+fi
+
+# 非交互模式下，项目工具默认符号链接，系统工具默认复制
+if [[ -z "$INSTALL_METHOD" ]]; then
+  if [[ "$TARGET_TYPE" =~ ^(cursor|claude|copilot)$ ]]; then
+    INSTALL_METHOD="symlink"
+  else
+    INSTALL_METHOD="copy"
+  fi
 fi
 
 # ── helpers ────────────────────────────────────────────────────────────
@@ -249,9 +254,16 @@ symlink_core() {
 install_all() {
   mkdir -p "$TARGET_DIR"
 
+  # ── 核心规则 (全局=复制, 项目=符号链接) ──
+  if [[ "$INSTALL_METHOD" == "symlink" ]]; then
+    symlink_core "$TARGET_DIR"
+  else
+    copy_core "$TARGET_DIR"
+  fi
+
+  # ── 工具特有文件 ──
   case "$TARGET_TYPE" in
     opencode)
-      copy_core "$TARGET_DIR"
       printf '  %s安装 OpenCode 配置...%s\n' "$GREEN" "$RESET"
       for d in agents commands plugins prompts mcp; do
         [[ -d "$PACK_DIR/opencode/$d" ]] && safe_copy_dir "$PACK_DIR/opencode/$d" "$TARGET_DIR/$d" && printf '    已复制: opencode/%s\n' "$d"
@@ -270,7 +282,6 @@ install_all() {
       fi
       ;;
     codex)
-      copy_core "$TARGET_DIR"
       printf '  %s安装 Codex 配置...%s\n' "$GREEN" "$RESET"
       cp "$PACK_DIR/adapters/codex/config.template.toml" "$TARGET_DIR/config.template.toml"
       cp "$PACK_DIR/adapters/codex/settings.json"       "$TARGET_DIR/settings.json"
@@ -283,22 +294,25 @@ install_all() {
       ;;
     cursor)
       cp "$PACK_DIR/adapters/cursor/.cursorrules" "$TARGET_DIR/.cursorrules"
-      symlink_core "$TARGET_DIR"
-      printf '\n  %s已安装: .cursorrules + 核心规则（符号链接）%s\n' "$BOLD" "$RESET"
-      echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      if [[ "$INSTALL_METHOD" == "symlink" ]]; then
+        echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      fi
+      printf '\n  %s已安装: .cursorrules + 核心规则%s\n' "$BOLD" "$RESET"
       ;;
     claude)
       cp "$PACK_DIR/adapters/claude-code/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-      symlink_core "$TARGET_DIR"
-      printf '\n  %s已安装: CLAUDE.md + 核心规则（符号链接）%s\n' "$BOLD" "$RESET"
-      echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      if [[ "$INSTALL_METHOD" == "symlink" ]]; then
+        echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      fi
+      printf '\n  %s已安装: CLAUDE.md + 核心规则%s\n' "$BOLD" "$RESET"
       ;;
     copilot)
       mkdir -p "$TARGET_DIR/.github"
       cp "$PACK_DIR/adapters/copilot/copilot-instructions.md" "$TARGET_DIR/.github/copilot-instructions.md"
-      symlink_core "$TARGET_DIR"
-      printf '\n  %s已安装: .github/copilot-instructions.md + 核心规则（符号链接）%s\n' "$BOLD" "$RESET"
-      echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      if [[ "$INSTALL_METHOD" == "symlink" ]]; then
+        echo -e "\n# AI governance symlinks\n${CORE_DIRS[*]}" >> "$TARGET_DIR/.gitignore" 2>/dev/null || true
+      fi
+      printf '\n  %s已安装: .github/copilot-instructions.md + 核心规则%s\n' "$BOLD" "$RESET"
       ;;
   esac
 }
@@ -314,7 +328,7 @@ install_dry_run() {
   目标目录: $TARGET_DIR
   pack 源:  $PACK_DIR
 
-  $( [[ "$TARGET_TYPE" =~ ^(cursor|claude|copilot)$ ]] && echo "安装方式: 符号链接（更新仓库即同步）" || echo "安装方式: 文件复制" )
+  $( [[ "$INSTALL_METHOD" == "symlink" ]] && echo "安装方式: 符号链接（更新仓库即同步）" || echo "安装方式: 文件复制" )
 DRY
   printf '\n'
 }
