@@ -55,69 +55,116 @@ fi
 
 # ── interactive mode ───────────────────────────────────────────────────
 
-interactive_menu() {
-  echo -e "${BOLD}${CYAN}═══ Portable AI Runtime 安装 ${RESET}\n"
+tool_default_dir() {
+  case "$1" in
+    opencode) echo "$HOME/.config/opencode" ;;
+    codex)    echo "$HOME/.codex" ;;
+    claude)   echo "$HOME/.claude" ;;
+    *)        echo "$HOME" ;;
+  esac
+}
 
-  # -- choose tool --
-  PS3=$'\n请选择目标工具: '
-  select tool in "OpenCode CLI" "Codex CLI" "Cursor Rules" "Claude Code Rules" "GitHub Copilot" "退出"; do
-    case "$REPLY" in
-      1) TARGET_TYPE="opencode"; break ;;
-      2) TARGET_TYPE="codex";    break ;;
-      3) TARGET_TYPE="cursor";   break ;;
-      4) TARGET_TYPE="claude";   break ;;
-      5) TARGET_TYPE="copilot";  break ;;
-      6) echo "已取消。"; exit 0 ;;
-    esac
-  done
-
-  # -- choose mode (system tools only) --
-  if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
-    PS3=$'\n选择操作: '
-    select mode_choice in "安装 (新装)" "更新 (覆盖规则，保留配置)"; do
+# Returns 0 if user selected a tool, 1 if exit
+choose_tool() {
+  echo -e "${BOLD}${CYAN}═══ Portable AI Runtime 安装 ${RESET}"
+  while true; do
+    echo ""
+    PS3=$'\n请选择目标工具: '
+    select tool in "OpenCode CLI" "Codex CLI" "Cursor Rules" "Claude Code Rules" "GitHub Copilot" "退出"; do
       case "$REPLY" in
-        1) MODE="install"; break ;;
-        2) MODE="update";  break ;;
+        1) TARGET_TYPE="opencode"; return 0 ;;
+        2) TARGET_TYPE="codex";    return 0 ;;
+        3) TARGET_TYPE="cursor";   return 0 ;;
+        4) TARGET_TYPE="claude";   return 0 ;;
+        5) TARGET_TYPE="copilot";  return 0 ;;
+        6) echo "已取消。"; exit 0 ;;
       esac
     done
+  done
+}
 
-    if [[ "$MODE" == "install" ]]; then
-      read -r -p $'\n初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: ' init_choice
-      [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
+# Returns 0 if user selected install/update, 1 if "返回"
+choose_mode() {
+  while true; do
+    echo ""
+    PS3=$'\n选择操作: '
+    select op in "安装 (新装)" "更新 (覆盖规则，保留配置)" "返回"; do
+      case "$REPLY" in
+        1) MODE="install"; return 0 ;;
+        2) MODE="update";  return 0 ;;
+        3) return 1 ;;
+      esac
+    done
+  done
+}
+
+# Returns 0 if user selected global/project, 1 if "返回"
+choose_scope() {
+  local global_dir
+  global_dir="$(tool_default_dir "$TARGET_TYPE")"
+
+  while true; do
+    echo ""
+    printf '%s%s — 安装范围%s\n' "$BOLD" "$TARGET_TYPE" "$RESET"
+    printf '  全局: 安装在 %s（所有项目共用）\n' "$global_dir"
+    printf '  项目: 指定项目目录（仅该项目生效）\n'
+    PS3=$'\n选择范围: '
+    select sc in "全局安装" "项目安装" "返回"; do
+      case "$REPLY" in
+        1) TARGET_DIR="$global_dir"; return 0 ;;
+        2)
+          while true; do
+            read -r -p $'\n输入项目根目录路径: ' dir_input
+            if [[ -n "$dir_input" ]]; then
+              TARGET_DIR="$dir_input"
+              return 0
+            fi
+            echo "路径不能为空"
+          done
+          ;;
+        3) return 1 ;;
+      esac
+    done
+  done
+}
+
+interactive_menu() {
+  while true; do
+    # ── 1. 选工具 ──
+    choose_tool
+
+    # ── 2. 选操作 (OpenCode/Codex only) ──
+    if [[ "$TARGET_TYPE" =~ ^(opencode|codex)$ ]]; then
+      if ! choose_mode; then
+        continue  # 返回 → 重新选工具
+      fi
+
+      if [[ "$MODE" == "install" ]]; then
+        echo ""
+        read -r -p "初始化状态文件? (AI_GUIDE/CURRENT_TASK/DECISIONS) [y/N]: " init_choice
+        [[ "$init_choice" =~ ^[Yy]$ ]] && INIT_STATE="true"
+      fi
+    else
+      MODE="install"
     fi
-  else
-    MODE="install"
-  fi
 
-  # -- choose target dir --
-  local default_dir hint
-  case "$TARGET_TYPE" in
-    opencode) default_dir="$HOME/.config/opencode"
-              hint="全局 ~/.config/opencode 或项目 .opencode/" ;;
-    codex)    default_dir="$HOME/.codex"
-              hint="全局 ~/.codex 或项目 .codex/" ;;
-    cursor)   default_dir="$HOME"
-              hint="全局 ~ 或项目根目录" ;;
-    claude)   default_dir="$HOME/.claude"
-              hint="全局 ~/.claude 或项目根目录" ;;
-    copilot)  default_dir="$PWD"
-              hint="项目目录（.github/ 下）" ;;
-  esac
+    # ── 3. 全局 or 项目 ──
+    if ! choose_scope; then
+      continue  # 返回 → 重新选工具
+    fi
 
-  printf '\n%s全部工具均支持全局安装和项目安装。%s\n' "$CYAN" "$RESET"
-  printf '  全局: 所有项目共用同一套规则\n'
-  printf '  项目: 仅当前项目生效，可随项目 Git 提交\n'
-  read -r -p $'\n目标目录 ['"$hint"', 默认 '"$default_dir"']: ' dir_input
-  TARGET_DIR="${dir_input:-$default_dir}"
+    # ── 4. 确认 ──
+    echo ""
+    echo -e "${BOLD}确认安装:${RESET}"
+    echo "  工具:     $TARGET_TYPE"
+    echo "  操作:     $MODE"
+    echo "  目标目录: $TARGET_DIR"
+    [[ "$INIT_STATE" == "true" ]] && echo "  初始化:   是"
+    read -r -p $'\n继续? [Y/n]: ' confirm
+    [[ "$confirm" =~ ^[Nn]$ ]] && continue
 
-  # -- confirm --
-  echo -e "\n${BOLD}确认安装:${RESET}"
-  echo "  工具:     $TARGET_TYPE"
-  echo "  操作:     $MODE"
-  echo "  目标目录: $TARGET_DIR"
-  [[ "$INIT_STATE" == "true" ]] && echo "  初始化:   是"
-  read -r -p $'\n继续? [Y/n]: ' confirm
-  [[ "$confirm" =~ ^[Nn]$ ]] && { echo "已取消。"; exit 0; }
+    return 0
+  done
 }
 
 # ── auto-detect defaults (non-interactive) ─────────────────────────────
