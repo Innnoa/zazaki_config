@@ -1,30 +1,43 @@
 # zazaki_config
 
-可复用的个人 dotfiles 与 AI 治理配置。
+个人 dotfiles 与可移植 AI 治理运行时。
 
 ## 结构
 
 ```
 zazaki_config/
-├── editors/
-│   └── nvim/              # Neovim (LazyVim) 完整配置
+├── editors/nvim/              # Neovim (LazyVim) 完整配置
 ├── tools/
-│   ├── btop/              # 系统监控 + Catppuccin 主题
-│   ├── fastfetch/         # 系统信息 (路径已脱敏)
-│   └── lazygit/           # Git TUI Catppuccin 配色
-└── portable_ai_runtime/   # OpenCode + Codex 可移植治理包
-    └── portable_dotcodex/ # AGENTS.md、rules、workflows、skills 等
+│   ├── btop/                  # 系统监控 + Catppuccin 主题
+│   ├── fastfetch/             # 系统信息 (路径已脱敏)
+│   └── lazygit/               # Git TUI Catppuccin 配色
+├── portable_ai_runtime/       # 可移植 AI 治理运行时
+│   ├── AGENTS.md              # 通用治理入口
+│   ├── rules/ai/              # 核心路由规则
+│   ├── workflows/ai/          # 执行工作流
+│   ├── references/ai/         # 参考文档
+│   ├── skills/ scripts/       # 共享技能 & 验证脚本
+│   ├── opencode/              # OpenCode 适配器
+│   ├── adapters/              # Cursor / Claude Code / Copilot / Codex
+│   └── install.sh             # 一键安装 (交互式 + CLI)
+└── outputs/                   # gitignored 运行时产物
 ```
 
 ## 使用方式
 
-各子目录对应 `~/.config/` 下的同名目录，软链接即可：
+### 编辑器 & 工具
 
 ```bash
 ln -s ~/Projects/zazaki_config/editors/nvim ~/.config/nvim
 ln -s ~/Projects/zazaki_config/tools/btop ~/.config/btop
-ln -s ~/Projects/zazaki_config/tools/lazygit/config.yml ~/.config/lazygit/config.yml
-ln -s ~/Projects/zazaki_config/tools/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 ```
 
-`portable_ai_runtime/` 的安装说明见 `portable_ai_runtime/README.md`。
+### AI 治理运行时
+
+```bash
+cd portable_ai_runtime
+./install.sh                     # 交互菜单: 选工具 → 选范围 → 确认
+./install.sh opencode install    # CLI: 安装到 ~/.config/opencode/
+```
+
+支持 **OpenCode**、**Codex CLI**、**Cursor**、**Claude Code**、**GitHub Copilot**。详见 `portable_ai_runtime/README.md`。
