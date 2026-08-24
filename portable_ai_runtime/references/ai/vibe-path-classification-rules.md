@@ -1,5 +1,8 @@
 ## Vibe 路径分类规则
 
+> **触发频率：低（设计意图）** — 此文件仅用于 `skills/vibe/config/*.json` 的打包/安装场景。
+> 日常 AI 任务不会触发此规则，勿误判为死规则。
+
 ### 作用
 
 为 `skills/vibe/config/*.json` 中出现的路径引用建立单一路径分类规则，避免把 install-time projection、runtime-generated artifact、external-tooling evidence 与本地必需路径混成同一类“缺文件”。
@@ -81,6 +84,8 @@
 4. 明确是外部资料、discovery、upstream memo：`external_tooling`
 5. 明确标记可选：`optional_material`
 6. 其余落回 `local_required`
+
+检验：我分类这条路径时，是按 1→6 的判断顺序来的，还是先宽后窄跳到了结论？
 
 ### 禁止事项
 

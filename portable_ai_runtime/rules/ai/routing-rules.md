@@ -13,7 +13,7 @@
 
 ### 会话纪律
 
-以下 Always Read 与路由检查两部分共同定义本文件的会话纪律规则。
+以下 Always Read 与路由检查两部分共同定义本文件的会话纪律规则；token 预算阈值与长会话提醒的详细语义以 `references/ai/session-budget-rules.md` 为准。
 
 ### Always Read
 
@@ -26,13 +26,30 @@
 
 ### Common Tasks
 
-- 修 bug：出现 bug、测试失败、构建失败、意外行为，且尚未完成根因分析时，先用 `systematic-debugging`，再按 `workflows/ai/fix-and-review.md` 执行
-- 实现功能：新增功能、行为修改、方案探索、需求设计，且尚未完成设计确认时先用 `brainstorming`；如果已经有设计/spec，且实现步骤达到 3 步及以上、涉及多文件修改、或需要跨轮执行，再用 `writing-plans`，随后按 `workflows/ai/plan-and-implement.md` 执行
-- 规划或拆实施路径：按 `workflows/ai/plan-and-implement.md` 执行
-- 需要把当前会话整理成新会话可直接粘贴的提示词时：优先使用 `/new-session`
-- 代码审查：按 `workflows/ai/fix-and-review.md` 执行，并保持 reviewer mindset
-- 用户明确提到 `vibe`，或任务涉及多文件修改、跨轮跟踪、需要冻结 requirement / plan、或需要更强验证闭环的任务：必须走 `vibe`
-- 多子任务且相互独立的任务：优先 `subagent-driven-development`，如果同时满足 `vibe` 条件，则优先 `vibe`
+#### 默认路径：非琐碎工作 → `vibe`
+
+任何满足以下任一条件的任务，默认走 `vibe` 受管运行时：
+- 涉及 2+ 文件修改
+- 可能需要跨会话继续（无法一次完成）
+- 涉及新的设计决策（不仅是纯机械执行）
+- 处于治理系统本身（`$HOME/.config/opencode` 下的工作）
+
+vibe 的 6 阶段合约（skeleton_check → deep_interview → requirement_doc → xl_plan → plan_execute → phase_cleanup）统一覆盖 brainstorming、writing-plans、subagent-driven-development 等场景，无需手动逐一选择路由。
+
+#### 不走 vibe 的专用路径
+
+以下场景使用专用路径，不经过 vibe：
+- 修 bug（已知根因）：`systematic-debugging` → `workflows/ai/fix-and-review.md`
+- 纯信息问答/查资料：直接回答，不走任何 workflow
+- 代码审查：`workflows/ai/fix-and-review.md`，保持 reviewer mindset
+- UI/UX 设计/审查：`ux-design` skill
+- 单文件小改（<20 行，纯执行，无设计决策）：直接执行
+- 需要跨会话粘贴提示词：`/new-session`
+- 多子任务且相互独立、但无需冻结需求/计划的轻量任务：`subagent-driven-development`
+
+#### 其他
+
+- 用户明确提到 `vibe`：必须走 `vibe`
 - 涉及“修改后是否引入类型/语法/配置错误”“某个文件当前有哪些诊断”“需要定义跳转/引用/hover”这类问题时，优先使用 OpenCode 原生 LSP 相关能力获取诊断或查询证据
 - 涉及“跨文件语义定位”“符号级理解”“引用关系确认”“结构化改动”这类问题时，优先使用 `serena`
 - 提交前完成确认：应用 `rules/ai/verification-rules.md`，并在需要判断“是否可提交”时先运行 `repo-audit`
@@ -47,6 +64,7 @@
 - 如果一个任务同时命中多个路径，优先顺序为：安全/阻断风险 > `vibe` 受管运行时 > 明确 workflow > 兜底路径。
 - 如果任务发生在 `$HOME/.config/opencode` 本身，默认应读取这里的 `CURRENT_TASK.md`。
 - 准备使用多 agent / subagent 前，先执行 `workflows/ai/subagent-routing.md`；信息不足时先串行探索，再决定是否并行。
+- 当对 trigger wording 是否准确有疑问时，参考 `references/ai/trigger-phrases.md` 做快速校对。
 
 ### 检验句
 

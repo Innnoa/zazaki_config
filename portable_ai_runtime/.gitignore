@@ -1,6 +1,40 @@
-# Runtime artifacts (outside portable_dotcodex/)
+# 权威模板：templates/gitignore/ai-artifacts.gitignore
+# pre-commit hook：scripts/git-hooks/pre-commit
+
+node_modules
+package.json
+package-lock.json
+
+# Python virtual environments
+ocr-venv/
+
+# Isolated implementation worktrees
+.worktrees/
+__pycache__/
+*.pyc
+
+# Secrets
+provider-secrets.env
+env
+
+# --- AI 状态文件 ---
+AI_GUIDE.md
+CURRENT_TASK.md
+DECISIONS.md
+
+# --- AI 设计/规划产物 ---
+docs/superpowers/
+
+# --- AI 会话交接材料 ---
+handoff/
+
+# --- AI 工具运行时目录 ---
+.codex/
+.claude/
+.serena/
+
+# --- AI 运行时产物 ---
 outputs/
 
-# System files
-.DS_Store
-Thumbs.db
+# === AI 产物排除规则（来源: templates/gitignore/ai-artifacts.gitignore）===
+outputs/runtime/

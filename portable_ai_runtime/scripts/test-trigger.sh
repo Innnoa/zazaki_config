@@ -25,7 +25,7 @@ for line in routing.splitlines():
         continue
     if not in_section:
         continue
-    if s.startswith("###"):
+    if s.startswith("### ") or s == "###":
         break
     if s.startswith("- "):
         entries.append(s[2:])
@@ -57,6 +57,9 @@ for entry in entries:
                 errors.append(f"missing file: {ref}  (from: {entry[:60]}...)")
         else:
             # Skill/workflow name — check if skill dir exists or it's a known name
+            # Skip path-like references (starts with $HOME, /, ~, .)
+            if ref.startswith("$HOME") or ref.startswith("/") or ref.startswith("~/") or ref.startswith("./"):
+                continue
             skill_dir = root / "skills" / ref
             if not skill_dir.exists():
                 # Well-known non-file names that don't need skill dirs

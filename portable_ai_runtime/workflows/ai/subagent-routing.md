@@ -48,8 +48,8 @@ Guardrails:
 
 ### Subagent Prompt Structure
 
-- 派发 prompt 必须按 `references/ai/subagent-prompt-template.md` 组织，至少包含：`Role`、`Goal`、`Scope`、`Constraints`、`Inputs`、`Expected Output`、`Verification`
-- `Scope` 只写当前子任务边界；`Constraints` 只写硬约束；`Verification` 只写必须回传的检查证据
+- 派发 prompt 必须按 `references/ai/subagent-prompt-template.md` 组织，至少包含：`Goal`、`Inputs`、`Outputs`、`Forbidden Zones`、`Acceptance Criteria`
+- `Forbidden Zones` 只写硬约束与禁止触碰的文件/模式；`Acceptance Criteria` 只写必须回传的机械可验证证据
 - 如果需要补充上下文，放进 `Inputs`，不要改写标题名，也不要改成中文标题
 - `opencode.json` 中的 command template 只能作为进入某类 subagent 的轻量 wrapper，不应成为第二套结构模板
 
@@ -57,7 +57,7 @@ Guardrails:
 
 - 不要因为 subagent 没有立即返回，就假定它已卡住；必须等显式完成报告
 - 不要中途打断 subagent，也不要在未完成前把任务抢回主 agent 自己做
-- 派发时模型只能在 `gpt-5.4` 和 `gpt-5.4-mini` 中选择
+- 模型由 `oh-my-opencode-slim.json` 的 preset 统一分配，不在 subagent 派发层面逐个指定
 - 推理强度只能在 `high`、`medium`、`low` 中选择：复杂判断优先 `high`，大多数任务默认 `medium`，简单快扫任务可用 `low`
 
 8. 如果判断结果为串行，先执行最小探索步骤，再按新证据重新评估是否需要并行

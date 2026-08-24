@@ -92,6 +92,44 @@ def get_daily_commits(repo, date_str):
     return commits
 
 
+def check_dirty_repos(repos):
+    """检测仓库的未提交变更与未推送提交。
+
+    对每个仓库运行 git status --porcelain 与 git log @{u}..HEAD --oneline；
+    返回 [(repo_name, dirty_count, unpushed_count), ...]，
+    仅包含有未提交变更或有未推送提交的仓库。
+    git status 失败（超时/OSError）时静默跳过该仓库；
+    未配置上游分支导致 git log @{u} 失败时，未推送视为 0（干净）。
+    """
+    results = []
+    for repo in repos:
+        try:
+            r = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=str(repo), capture_output=True, text=True, timeout=15,
+            )
+            if r.returncode != 0:
+                continue
+            dirty_count = len([ln for ln in r.stdout.split("\n") if ln.strip()])
+        except (subprocess.TimeoutExpired, OSError):
+            continue  # 失败则静默跳过该仓库
+
+        unpushed_count = 0
+        try:
+            r = subprocess.run(
+                ["git", "log", "@{u}..HEAD", "--oneline"],
+                cwd=str(repo), capture_output=True, text=True, timeout=15,
+            )
+            if r.returncode == 0:
+                unpushed_count = len([ln for ln in r.stdout.split("\n") if ln.strip()])
+        except (subprocess.TimeoutExpired, OSError):
+            pass  # 无上游分支等失败视为干净
+
+        if dirty_count > 0 or unpushed_count > 0:
+            results.append((str(repo), dirty_count, unpushed_count))
+    return results
+
+
 def read_task_file(task_dir, filename):
     filepath = task_dir / filename
     if not filepath.exists():
@@ -202,7 +240,7 @@ def build_headline(done, pending, repo_commits):
     return headline
 
 
-def build_report(date, done, pending, failed, repo_commits):
+def build_report(date, done, pending, failed, repo_commits, dirty_repos=None):
     lines = []
     date_str = date.strftime("%Y-%m-%d")
     weekday = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"][date.weekday()]
@@ -280,6 +318,17 @@ def build_report(date, done, pending, failed, repo_commits):
     else:
         lines.append("[Git]  无提交")
 
+    if dirty_repos:
+        lines.append("")
+        lines.append(f"[Git 状态]  {len(dirty_repos)} 个仓库有待处理")
+        for repo, dirty_count, unpushed_count in dirty_repos:
+            parts = []
+            if dirty_count > 0:
+                parts.append(f"{dirty_count} 个未提交变更")
+            if unpushed_count > 0:
+                parts.append(f"{unpushed_count} 个未推送提交")
+            lines.append(f"  {repo}: {', '.join(parts)}")
+
     lines.append("")
     lines.append(SEP)
     lines.append("")
@@ -310,7 +359,12 @@ def main():
         commits = get_daily_commits(repo, date_str)
         repo_commits[str(repo)] = commits
 
-    report = build_report(date, done, pending, failed, repo_commits)
+    # 脏仓库/未推送检测只在"今日"运行；历史日期反映的是当前状态，无意义
+    dirty_repos = []
+    if len(sys.argv) <= 1:
+        dirty_repos = check_dirty_repos(repos)
+
+    report = build_report(date, done, pending, failed, repo_commits, dirty_repos)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     output_path = OUTPUT_DIR / f"{date_str}.txt"

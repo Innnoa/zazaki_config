@@ -38,3 +38,13 @@
 "Miller's Law 说 7 个，所以导航必须 7 个"——这是误用。5 个比 7 个更好，结构化分组比死守数字更重要。
 
 **法则是指南，不是圣经。用检验句判断，不用数字绑架。**
+
+### 5. 视觉系统选择冲突
+
+当 `ux-design` 和 `apple-design` 同时激活时，可能出现配色或风格指令冲突。处理规则：
+
+- **颜色**：以 Catppuccin Mocha 为准（ux-design 默认）。`apple-design` 已内置 Catppuccin Mocha 配色，两者一致。
+- **间距/动画**：以 `apple-design` 的 8px 网格和 iOS 缓动为准。
+- **字体**：以 `apple-design` 的 clamp() + 系统字体栈为准。
+- **组件外观**：`apple-design` 提供玻璃态、圆角、阴影等具体实现；`ux-design` 不干预视觉细节。
+- 如果用户明确要求非 Catppuccin 的其他色板，关闭 `apple-design` 后再操作。

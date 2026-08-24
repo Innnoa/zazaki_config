@@ -67,4 +67,30 @@ if [[ ${#BLOCKED[@]} -gt 0 ]]; then
     exit 1
 fi
 
+# --- governance file change check ---
+GOV_FILES=$(echo "$STAGED" | grep -E '^(rules/ai/|workflows/ai/|references/ai/|AGENTS\.md|opencode\.json|agents/|plugins/session-governance\.ts|scripts/git-hooks/)' || true)
+if [[ -n "$GOV_FILES" ]]; then
+    echo ""
+    echo "  → 检测到治理文件变更，运行快速烟雾检查..."
+    SCRIPT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+    if bash "$SCRIPT_DIR/scripts/ai-governance-smoke-check.sh" 2>&1; then
+        echo "  ✓ 治理烟雾检查通过"
+    else
+        echo ""
+        echo "  ⚠ 治理烟雾检查未通过，请修复后再提交。"
+        echo "    手动运行: bash scripts/ai-governance-smoke-check.sh"
+        echo ""
+        exit 1
+    fi
+    if bash "$SCRIPT_DIR/scripts/test-trigger.sh" 2>&1; then
+        echo "  ✓ 路由引用检查通过"
+    else
+        echo ""
+        echo "  ⚠ 路由引用检查未通过。"
+        echo "    手动运行: bash scripts/test-trigger.sh"
+        echo ""
+        exit 1
+    fi
+fi
+
 exit 0

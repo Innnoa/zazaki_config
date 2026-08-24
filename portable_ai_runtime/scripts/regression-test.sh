@@ -10,7 +10,11 @@ run_check() {
   local name="$1"
   local cmd="$2"
   local output
-  if output=$(bash "$ROOT/scripts/$cmd" 2>&1); then
+  local runner="bash"
+  case "$cmd" in
+    *.py) runner="python3" ;;
+  esac
+  if output=$("$runner" "$ROOT/scripts/$cmd" 2>&1); then
     RESULTS+=("PASS: $name")
     PASS=$((PASS + 1))
   else
@@ -30,6 +34,8 @@ echo ""
 run_check "route refs"               "test-trigger.sh"
 echo ""
 run_check "token budgets"            "check-governance-tokens.sh"
+echo ""
+run_check "vibe paths"                "check-vibe-config-paths.py"
 echo ""
 run_check "gitignore check"          "gitignore-check.sh"
 echo ""

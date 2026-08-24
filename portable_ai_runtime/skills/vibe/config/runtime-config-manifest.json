@@ -70,12 +70,6 @@
     "config/settings.template.codex.json",
     "config/skills-lock.json",
     "config/system-design-overlay.json",
-    "config/opencode/agents/vibe-implement.md",
-    "config/opencode/agents/vibe-plan.md",
-    "config/opencode/agents/vibe-review.md",
-    "config/opencode/commands/vibe-implement.md",
-    "config/opencode/commands/vibe-review.md",
-    "config/opencode/commands/vibe.md",
     "config/opencode/opencode.json.example",
     "config/upstream-lock.json",
     "config/version-governance.json"
@@ -164,12 +158,6 @@
         "config/upstream-lock.json"
       ],
       "opencode_preview_files": [
-        "config/opencode/agents/vibe-implement.md",
-        "config/opencode/agents/vibe-plan.md",
-        "config/opencode/agents/vibe-review.md",
-        "config/opencode/commands/vibe-implement.md",
-        "config/opencode/commands/vibe-review.md",
-        "config/opencode/commands/vibe.md",
         "config/opencode/opencode.json.example"
       ]
     },

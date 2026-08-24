@@ -111,7 +111,7 @@ You MUST complete each phase before proceeding to the next.
 
    **WHEN error is deep in call stack:**
 
-   See `root-cause-tracing.md` in this directory for the complete backward tracing technique.
+   See `../vibe/bundled/skills/systematic-debugging/root-cause-tracing.md` for the complete backward tracing technique.
 
    **Quick version:**
    - Where does bad value originate?
@@ -203,14 +203,14 @@ You MUST complete each phase before proceeding to the next.
    - Fixes require "massive refactoring" to implement
    - Each fix creates new symptoms elsewhere
 
-   **STOP and question fundamentals:**
-   - Is this pattern fundamentally sound?
-   - Are we "sticking with it through sheer inertia"?
-   - Should we refactor architecture vs. continue fixing symptoms?
+    **STOP and question fundamentals:**
+    - Is this pattern fundamentally sound?
+    - Are we "sticking with it through sheer inertia"?
+    - Should we refactor architecture vs. continue fixing symptoms?
 
-   **Discuss with your human partner before attempting more fixes**
+    **Discuss with your human partner before attempting more fixes** — follow `rules/ai/grill-me-protocol.md`: one decision at a time, environment-first, with a recommendation.
 
-   This is NOT a failed hypothesis - this is a wrong architecture.
+    This is NOT a failed hypothesis - this is a wrong architecture.
 
 ## Red Flags - STOP and Follow Process
 
@@ -277,11 +277,11 @@ If systematic investigation reveals issue is truly environmental, timing-depende
 
 ## Supporting Techniques
 
-These techniques are part of systematic debugging and available in this directory:
+These techniques are part of systematic debugging and available in `../vibe/bundled/skills/systematic-debugging/`:
 
-- **`root-cause-tracing.md`** - Trace bugs backward through call stack to find original trigger
-- **`defense-in-depth.md`** - Add validation at multiple layers after finding root cause
-- **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
+- **`../vibe/bundled/skills/systematic-debugging/root-cause-tracing.md`** - Trace bugs backward through call stack to find original trigger
+- **`../vibe/bundled/skills/systematic-debugging/defense-in-depth.md`** - Add validation at multiple layers after finding root cause
+- **`../vibe/bundled/skills/systematic-debugging/condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
 
 **Related skills:**
 - **superpowers:test-driven-development** - For creating failing test case (Phase 4, Step 1)

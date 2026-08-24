@@ -17,9 +17,14 @@ Load plan, review critically, execute all tasks, report when complete.
 
 ### Step 1: Load and Review Plan
 1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
-3. If concerns: Raise them with your human partner before starting
-4. If no concerns: Create TodoWrite and proceed
+2. **Plan Review Gate** — 开始执行前，必须逐条检查以下 checklist：
+
+   - [ ] 计划是否完整？每个 task 是否包含明确的 Files/Steps/预期输出？
+   - [ ] 依赖是否可用？所需库、工具、环境是否已就绪？
+   - [ ] 范围是否清晰？是否存在 spec/plan 未覆盖的关键需求？
+   - [ ] 是否有任何"我先执行，遇到问题再说"的未确认假设？
+
+   **任意一项未通过 → STOP。启动 grill-me 访谈（`rules/ai/grill-me-protocol.md`），逐条与用户确认后再继续。全部通过后才创建 TodoWrite 并开始执行。**
 
 ### Step 2: Execute Tasks
 

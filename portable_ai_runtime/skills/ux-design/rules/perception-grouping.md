@@ -74,5 +74,5 @@
 
 检验：配色方案是否基于 Catppuccin Mocha？颜色名称是否来自色板表（Mauve/Blue/Green 等），而非随意 HEX 值？对比度是否满足标准？
 
-- 详细色板与语义映射见 `references/catppuccin-mocha.md`
+- 详细色板与语义映射见 `../references/catppuccin-mocha.md`
 - 来源仓库：`~/Projects/catppuccin`

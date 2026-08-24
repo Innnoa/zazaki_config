@@ -30,6 +30,14 @@ description: >
 
 每个新任务——即使是同一会话的第 N 轮——必须重读本文件、重新匹配 Common Tasks 路由、重读该路由列出的必读文件。
 
+**Session Discipline Gate**：
+
+- [ ] 本次任务是否已重读本 SKILL.md？
+- [ ] 是否已重新匹配 Common Tasks 路由？
+- [ ] 是否已重读该路由列出的全部必读文件？
+
+**任意一项未通过 → STOP。不得开始审查/设计工作。先执行缺失的读取步骤。**
+
 检验：问自己"这次任务我读的文件和 Common Tasks 里对应路由列的完全一致吗？"如果有任何差异，立即回头重走路由。
 
 ## Core Principles
@@ -55,10 +63,19 @@ description: >
 | 通用 UI 审查 / 未分类 | 全部五层 | 先逐层扫描，再定位问题层深入 |
 | 多子任务 | 派发给独立 agent 分别审查不同页面/模块 | `references/gotchas.md` 共享 |
 
+## 视觉设计系统
+
+**默认配色：Catppuccin Mocha。** 所有颜色变量使用 `--ctp-mocha-*` 前缀或等价映射，详细色板见 `references/catppuccin-mocha.md`。
+
+**可选视觉方案：`apple-design` skill。** 当用户明确要求极简/现代/Apple 风格时，加载 `skills/apple-design/SKILL.md`。该 skill 提供完整的视觉实现层（颜色、字体、8px 网格、玻璃态、动画），配色已替换为 Catppuccin Mocha。
+
+ux-design 管"交互对不对"，apple-design 管"看起来怎么样"。两者可同时激活，分工不重叠。
+
 ## Known Gotchas
 
 - 常见跨法则冲突：`references/gotchas.md`
 - 配色设计默认使用 Catppuccin Mocha 主题，不得混用其他色板命名体系：`references/catppuccin-mocha.md`
+- 视觉系统选择冲突：如同时加载了 `apple-design` 和其他视觉系统 skill，以 Catppuccin Mocha + apple-design 为准，忽略其他配色方案
 - 每个规则文件末尾自带检查清单，审查时逐条对照
 - "优化其中一个法则而破坏另一个"是最高频错误——每改一处，至少检查一次相关法则是否受影响
 

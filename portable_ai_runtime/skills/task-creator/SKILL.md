@@ -60,7 +60,13 @@ Write as empty template from `assets/AAR.template.md`. After the goal-runner age
 
 ## Operating Rules
 
-- If the user's requirement is vague, ask one clarifying question before writing TASK.md
+- If the user's requirement is vague: launch grill-me interview (`rules/ai/grill-me-protocol.md`), clarify layer by layer until the task boundary is clear:
+
+  - [ ] Is the task goal clear and unambiguous?
+  - [ ] Is the task scope boundary confirmed?
+  - [ ] Are all "I assume the user wants X" assumptions eliminated?
+
+  **Any item NOT checked → STOP. Do NOT create TASK.md. Continue grill-me interview until all pass.**
 - Prefer concrete acceptance criteria over vague ones
 - Always include the `_pending` suffix in the folder name
 - Do NOT put code or project files in the task folder — only TASK.md and COMPLETION.md

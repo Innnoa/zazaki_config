@@ -33,14 +33,13 @@ Generate one paste-ready prompt for a fresh session. Prefer durable context file
 
 先按治理入口重新路由，并阅读：
 1. AGENTS.md
-2. rules/ai/session-discipline.md
-3. rules/ai/routing-rules.md
-4. CURRENT_TASK.md
-5. DECISIONS.md 中与本任务相关的条目
-6. AI_GUIDE.md 中与本任务相关的锚点
-7. [直接相关文件 1]
-8. [直接相关文件 2]
-9. [直接相关文件 3]
+2. rules/ai/routing-rules.md（含会话纪律）
+3. CURRENT_TASK.md
+4. DECISIONS.md 中与本任务相关的条目
+5. AI_GUIDE.md 中与本任务相关的锚点
+6. [直接相关文件 1]
+7. [直接相关文件 2]
+8. [直接相关文件 3]
 
 本次目标：
 - [一句话目标]

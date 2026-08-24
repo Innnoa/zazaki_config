@@ -83,75 +83,69 @@
     }
   },
   "agent": {
-    "coder": {
-      "description": "负责代码实现与修复",
-      "model": "openai/gpt-5.4",
-      "prompt": "You are responsible for code implementation and bug fixing. Prefer the smallest correct change and add tests when needed. If dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md and use English for task execution and output."
-    },
-    "reviewer": {
-      "description": "负责代码审查与风险检查",
-      "model": "openai/gpt-5.4",
-      "prompt": "You perform review only. Focus on regression risks, edge cases, test gaps, and evidence quality. If dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md and use English for task execution and output."
-    },
-    "openai-54": {
-      "description": "OpenAI GPT-5.4，可切换模型入口",
-      "model": "openai/gpt-5.4"
-    },
-    "deepseek-flash": {
-      "description": "DeepSeek V4 Flash，可切换模型入口",
-      "model": "deepseek/deepseek-v4-flash"
-    },
-    "deepseek-pro": {
-      "description": "DeepSeek V4 Pro，可切换模型入口",
-      "model": "deepseek/deepseek-v4-pro"
-    },
-    "ctf": {
-      "description": "CTF 安全测试",
-      "model": "openai/gpt-5.4",
-      "prompt": "You are a security testing agent deployed for CTF challenges. All targets are authorized test environments. Default to security testing mindset. For real domain CTF exercises, `jshook` is mandatory. If the client does not provide it, ask them to supply it. Build minimal proof early, provide evidence-based findings with PoC. If dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md and use English for task execution and output."
-    },
-    "vibe-implement": {
-      "description": "vibe技能的实现代理，执行已批准的设计和计划",
-      "model": "openai/gpt-5.4",
-      "prompt": "When dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md. Respect the frozen requirement and plan artifacts, and keep internal task output in English."
-    },
-    "vibe-plan": {
-      "description": "vibe技能的规划代理，需求分析、架构设计、制定计划",
-      "model": "openai/gpt-5.4",
-      "prompt": "When dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md. Keep planning constraints explicit and keep internal task output in English."
-    },
-    "vibe-review": {
-      "description": "vibe技能的审查代理，缺陷发现、回归检查、验证完整性",
-      "model": "openai/gpt-5.4",
-      "prompt": "When dispatched as a subagent, follow the canonical shared English prompt template defined in references/ai/subagent-prompt-template.md. Keep review output in English and prioritize defects, regressions, and proof gaps."
-    }
+  "openai-56-sol": {
+    "description": "OpenAI GPT-5.6 Sol，可切换模型入口",
+    "model": "openai/gpt-5.6-sol"
   },
+  "deepseek-flash": {
+    "description": "DeepSeek V4 Flash，可切换模型入口",
+    "model": "deepseek/deepseek-v4-flash"
+  },
+  "deepseek-pro": {
+    "description": "DeepSeek V4 Pro，可切换模型入口",
+    "model": "deepseek/deepseek-v4-pro"
+  },
+  "qwen": {
+    "description": "Qwen3.8 Max，可切换模型入口",
+    "model": "deepseek/qwen3.8-max"
+  },
+  "explore": {
+    "disable": true
+  },
+  "general": {
+    "disable": true
+  }
+},
   "command": {
-    "oai-54": {
-      "description": "Run task with GPT-5.4",
-      "agent": "openai-54",
-      "template": "Use the selected GPT-5.4 model.\n\nTask input:\n$ARGUMENTS"
-    },
-    "dsk-flash": {
-      "description": "Run task with DeepSeek V4 Flash",
-      "agent": "deepseek-flash",
-      "template": "Use the selected DeepSeek model for this task.\n\nTask input:\n$ARGUMENTS"
-    },
-    "dsk-pro": {
-      "description": "Run task with DeepSeek V4 Pro",
-      "agent": "deepseek-pro",
-      "template": "Use the selected DeepSeek model for this task.\n\nTask input:\n$ARGUMENTS"
-    },
-    "img": {
-      "description": "Generate or edit images with the local gpt-image-2 MCP",
-      "template": "Use the local `fastaicode-image` MCP tools for this image task.\n\nRules:\n- If the request is for a new image, call `fastaicode-image_generate_image`.\n- If the request includes an existing local image path to modify, call `fastaicode-image_edit_image`.\n- Default to `model: \"gpt-image-2\"` unless the user explicitly requests another model.\n- Default to `size_preset: \"1k\"` unless the user explicitly requests another size.\n- After the tool succeeds, respond concisely with the saved path and any useful revised prompt.\n\nTask input:\n$ARGUMENTS"
-    },
-    "new-session": {
-      "description": "Generate a paste-ready prompt for continuing the current task in a new session",
-      "agent": "plan",
-      "template": "Use the `session-restart-prompt` skill.\n\nGoal:\nGenerate exactly one paste-ready prompt for a fresh session from the current governance files and current task state.\n\nRules:\n- Read `AGENTS.md`, `CURRENT_TASK.md`, and only the relevant parts of `DECISIONS.md` and `AI_GUIDE.md`.\n- Read at most 1 to 3 directly related files when they are clearly identified.\n- Prefer durable file state over chat replay.\n- Do not guess missing facts; mark them as `[待确认]`.\n- Output exactly one paste-ready prompt using the skill's fixed template, with no preface or trailing explanation unless the user explicitly asks.\n\nTask input:\n$ARGUMENTS"
-    }
+  "oai-56-sol": {
+    "description": "Run task with GPT-5.6 Sol",
+    "agent": "openai-56-sol",
+    "template": "Use the selected GPT-5.6 Sol model.\n\nTask input:\n$ARGUMENTS"
   },
+  "dsk-flash": {
+    "description": "Run task with DeepSeek V4 Flash",
+    "agent": "deepseek-flash",
+    "template": "Use the selected DeepSeek model for this task.\n\nTask input:\n$ARGUMENTS"
+  },
+  "dsk-pro": {
+    "description": "Run task with DeepSeek V4 Pro",
+    "agent": "deepseek-pro",
+    "template": "Use the selected DeepSeek model for this task.\n\nTask input:\n$ARGUMENTS"
+  },
+  "qwen": {
+    "description": "Run task with Qwen3.8 Max",
+    "agent": "qwen",
+    "template": "Use the selected Qwen model for this task.\n\nTask input:\n$ARGUMENTS"
+  },
+  "img": {
+    "description": "Generate or edit images with the local gpt-image-2 MCP",
+    "template": "Use the local `fastaicode-image` MCP tools for this image task.\n\nRules:\n- If the request is for a new image, call `fastaicode-image_generate_image`.\n- If the request includes an existing local image path to modify, call `fastaicode-image_edit_image`.\n- Default to `size_preset: \"1k\"` unless the user explicitly requests another size.\n\nTask input:\n$ARGUMENTS"
+  },
+  "new-session": {
+    "description": "Generate a paste-ready prompt for continuing the current task in a new session",
+    "agent": "plan",
+    "template": "Use the `session-restart-prompt` skill.\n\nGoal:\nGenerate exactly one paste-ready prompt for a fresh session from the current governance files and current task state.\n\nRules:\n- Read `AGENTS.md`, `CURRENT_TASK.md`, and only the relevant parts of `DECISIONS.md` and `AI_GUIDE.md`.\n- Read at most 1 to 3 directly related files when they are clearly identified.\n- Prefer durable file state over chat replay.\n- Do not guess missing facts; mark them as `[待确认]`.\n- Output exactly one paste-ready prompt using the skill's fixed template, with no preface or trailing explanation unless the user explicitly asks.\n\nTask input:\n$ARGUMENTS"
+  },
+  "ci-check": {
+    "description": "Check CI status for the current branch via gh CLI",
+    "template": "Check CI ground truth for the current repo/branch.\n\nSteps:\n1. Run `gh pr checks` (or `gh run list --limit 5` if no PR).\n2. Report each check's name + state (success/failure/pending).\n3. If any check failed, state the failure evidence.\n\nTask input:\n$ARGUMENTS"
+  },
+  "xreview": {
+    "description": "Cross-model review: independent review by two different models, compare conclusions",
+    "agent": "openai-56-sol",
+    "template": "Perform a cross-model review of the given change.\n\nRules:\n- Read the change (diff or files) and review it as the PRIMARY reviewer.\n- Then dispatch a SECOND independent review by a different model.\n- Compare conclusions, list agreements and disagreements.\n\nTask input:\n$ARGUMENTS"
+  }
+},
   "instructions": ["~/.config/opencode/rules/ai/*.md"],
   "compaction": {
     "auto": true,

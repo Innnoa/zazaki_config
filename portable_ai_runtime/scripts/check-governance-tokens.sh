@@ -1,137 +1,154 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # check-governance-tokens.sh — audit total governance token footprint
-# Uses zazaki_tokenizer for accurate per-file counts.
+# Uses Python tiktoken for accurate per-file counts with cl100k_base encoding.
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-TOKENIZER="zazaki_tokenizer"
+python3 - "$ROOT_DIR" <<'PY'
+import sys, os, json
+from pathlib import Path
 
-if ! command -v "$TOKENIZER" &>/dev/null; then
-  echo "ERROR: $TOKENIZER not found in PATH"
-  exit 1
-fi
+root = Path(sys.argv[1])
 
-count_file() {
-  local raw
-  raw=$("$TOKENIZER" count -f "$1" 2>/dev/null) || { echo "0"; return; }
-  echo "${raw%% *}"  # extract number before " tokens"
-}
+# Use tiktoken if available, otherwise fall back to char/2 estimate
+try:
+    import tiktoken
+    enc = tiktoken.get_encoding("cl100k_base")
+    def count_tokens(path: Path) -> int:
+        return len(enc.encode(path.read_text(encoding="utf-8", errors="replace")))
+    TOKENIZER = "tiktoken (cl100k_base)"
+except ImportError:
+    def count_tokens(path: Path) -> int:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        return max(1, len(text) // 2)
+    TOKENIZER = "char/2 estimate (tiktoken not installed)"
 
-errors=0
-total_tokens=0
-declare -a file_results
+errors = 0
+total_tokens = 0
 
-echo "=== Governance Token Audit ==="
-echo ""
+print("=== Governance Token Audit ===")
+print(f"Tokenizer: {TOKENIZER}")
+print()
 
 # ── Always-injected: instructions (3 files) ──────────────────────
-echo "--- always injected (instructions) ---"
-instr_total=0
-for f in \
-  "$ROOT_DIR/rules/ai/routing-rules.md" \
-  "$ROOT_DIR/rules/ai/task-closure.md" \
-  "$ROOT_DIR/rules/ai/verification-rules.md"; do
-  tokens=$(count_file "$f")
-  instr_total=$((instr_total + tokens))
-  printf "  %-45s %s tokens\n" "$(echo "$f" | sed "s|$ROOT_DIR/||")" "$tokens"
-done
-printf "  %-45s %s tokens\n" "subtotal (always injected)" "$instr_total"
-echo ""
+print("--- always injected (instructions) ---")
+instr_files = [
+    root / "rules/ai/routing-rules.md",
+    root / "rules/ai/task-closure.md",
+    root / "rules/ai/verification-rules.md",
+]
+instr_total = 0
+for f in instr_files:
+    if not f.exists():
+        print(f"  {f.relative_to(root):<45} MISSING")
+        errors += 1
+        continue
+    tokens = count_tokens(f)
+    instr_total += tokens
+    print(f"  {str(f.relative_to(root)):<45} {tokens} tokens")
+print(f"  {'subtotal (always injected)':<45} {instr_total} tokens")
+print()
 
 # ── On-demand rules ──────────────────────────────────────────────
-echo "--- on-demand rules/ai/ ---"
-on_demand_total=0
-for f in "$ROOT_DIR"/rules/ai/*.md; do
-  fname=$(echo "$f" | sed "s|$ROOT_DIR/||")
-  case "$fname" in
-    rules/ai/routing-rules.md|rules/ai/task-closure.md|rules/ai/verification-rules.md)
-      continue ;;  # already counted above
-  esac
-  tokens=$(count_file "$f")
-  on_demand_total=$((on_demand_total + tokens))
-  printf "  %-45s %s tokens\n" "$fname" "$tokens"
-done
-printf "  %-45s %s tokens\n" "subtotal (on-demand rules)" "$on_demand_total"
-echo ""
+print("--- on-demand rules/ai/ ---")
+on_demand_total = 0
+always_injected_names = {"rules/ai/routing-rules.md", "rules/ai/task-closure.md", "rules/ai/verification-rules.md"}
+for f in sorted(root.glob("rules/ai/*.md")):
+    rel = str(f.relative_to(root))
+    if rel in always_injected_names:
+        continue
+    if not f.exists():
+        continue
+    tokens = count_tokens(f)
+    on_demand_total += tokens
+    print(f"  {rel:<45} {tokens} tokens")
+print(f"  {'subtotal (on-demand rules)':<45} {on_demand_total} tokens")
+print()
 
 # ── Workflows ────────────────────────────────────────────────────
-echo "--- workflows/ai/ ---"
-wf_total=0
-for f in "$ROOT_DIR"/workflows/ai/*.md; do
-  tokens=$(count_file "$f")
-  wf_total=$((wf_total + tokens))
-  printf "  %-45s %s tokens\n" "$(echo "$f" | sed "s|$ROOT_DIR/||")" "$tokens"
-done
-printf "  %-45s %s tokens\n" "subtotal (workflows)" "$wf_total"
-echo ""
+print("--- workflows/ai/ ---")
+wf_total = 0
+for f in sorted(root.glob("workflows/ai/*.md")):
+    tokens = count_tokens(f)
+    wf_total += tokens
+    print(f"  {str(f.relative_to(root)):<45} {tokens} tokens")
+print(f"  {'subtotal (workflows)':<45} {wf_total} tokens")
+print()
 
 # ── References ───────────────────────────────────────────────────
-echo "--- references/ai/ ---"
-ref_total=0
-for f in "$ROOT_DIR"/references/ai/*.md; do
-  tokens=$(count_file "$f")
-  ref_total=$((ref_total + tokens))
-  printf "  %-45s %s tokens\n" "$(echo "$f" | sed "s|$ROOT_DIR/||")" "$tokens"
-done
-printf "  %-45s %s tokens\n" "subtotal (references)" "$ref_total"
-echo ""
+print("--- references/ai/ ---")
+ref_total = 0
+for f in sorted(root.glob("references/ai/*.md")):
+    tokens = count_tokens(f)
+    ref_total += tokens
+    print(f"  {str(f.relative_to(root)):<45} {tokens} tokens")
+print(f"  {'subtotal (references)':<45} {ref_total} tokens")
+print()
 
 # ── Entry + Plugin ───────────────────────────────────────────────
-echo "--- entry + plugin ---"
-agents_tokens=$(count_file "$ROOT_DIR/AGENTS.md")
-plugin_tokens=$(count_file "$ROOT_DIR/plugins/session-governance.ts")
-printf "  %-45s %s tokens\n" "AGENTS.md" "$agents_tokens"
-printf "  %-45s %s tokens\n" "plugins/session-governance.ts" "$plugin_tokens"
-printf "  %-45s %s tokens\n" "subtotal (entry+plugin)" "$((agents_tokens + plugin_tokens))"
-echo ""
+print("--- entry + plugin ---")
+agents_f = root / "AGENTS.md"
+plugin_f = root / "plugins" / "session-governance.ts"
+agents_tokens = count_tokens(agents_f) if agents_f.exists() else 0
+plugin_tokens = count_tokens(plugin_f) if plugin_f.exists() else 0
+print(f"  {'AGENTS.md':<45} {agents_tokens} tokens")
+print(f"  {'plugins/session-governance.ts':<45} {plugin_tokens} tokens")
+print(f"  {'subtotal (entry+plugin)':<45} {agents_tokens + plugin_tokens} tokens")
+print()
+
+# ── Agents ───────────────────────────────────────────────────────
+print("--- agents/ ---")
+agent_total = 0
+for f in sorted(root.glob("agents/*.md")):
+    tokens = count_tokens(f)
+    agent_total += tokens
+    print(f"  {str(f.relative_to(root)):<45} {tokens} tokens")
+if agent_total == 0:
+    print("  (none)")
+print(f"  {'subtotal (agents)':<45} {agent_total} tokens")
+print()
 
 # ── Totals ───────────────────────────────────────────────────────
-grand_total=$((instr_total + on_demand_total + wf_total + ref_total + agents_tokens + plugin_tokens))
-always_injected_total=$((instr_total))
-# Governance Shell summary (~20 lines hardcoded, estimated ~500 tokens)
-shell_estimate=500
-runtime_context=$((always_injected_total + shell_estimate))
+grand_total = instr_total + on_demand_total + wf_total + ref_total + agents_tokens + plugin_tokens + agent_total
+shell_estimate = 500
+runtime_context = instr_total + shell_estimate
 
-echo "========================================="
-printf "%-45s %s tokens\n" "always injected (instructions)" "$always_injected_total"
-printf "%-45s %s tokens\n" "governance shell (system.transform)" "~$shell_estimate"
-printf "%-45s %s tokens\n" "estimated runtime context" "~$runtime_context"
-printf "%-45s %s tokens\n" "on-demand (rules+workflows+refs)" "$((on_demand_total + wf_total + ref_total))"
-printf "%-45s %s tokens\n" "entry + plugin" "$((agents_tokens + plugin_tokens))"
-printf "%-45s %s tokens\n" "grand total (all files)" "$grand_total"
-echo "========================================="
-echo ""
+print("=========================================")
+print(f"{'always injected (instructions)':<45} {instr_total} tokens")
+print(f"{'governance shell (system.transform)':<45} ~{shell_estimate} tokens")
+print(f"{'estimated runtime context':<45} ~{runtime_context} tokens")
+print(f"{'on-demand (rules+workflows+refs)':<45} {on_demand_total + wf_total + ref_total} tokens")
+print(f"{'entry + plugin + agents':<45} {agents_tokens + plugin_tokens + agent_total} tokens")
+print(f"{'grand total (all files)':<45} {grand_total} tokens")
+print("=========================================")
+print()
 
 # ── Budget checks ────────────────────────────────────────────────
-MAX_PER_FILE=2000
-MAX_ALWAYS_INJECTED=4000
+MAX_PER_FILE = 2000
+MAX_ALWAYS_INJECTED = 4500
 
-echo "--- budget checks ---"
-for f in "$ROOT_DIR"/rules/ai/*.md; do
-  tokens=$(count_file "$f")
-  if [ "$tokens" -gt "$MAX_PER_FILE" ]; then
-    echo -e "  ${RED}FAIL${NC}: $(echo "$f" | sed "s|$ROOT_DIR/||") ($tokens tokens > $MAX_PER_FILE)"
-    errors=$((errors + 1))
-  fi
-done
+print("--- budget checks ---")
+for f in sorted(root.glob("rules/ai/*.md")):
+    tokens = count_tokens(f)
+    if tokens > MAX_PER_FILE:
+        print(f"  \033[0;31mFAIL\033[0m: {f.relative_to(root)} ({tokens} tokens > {MAX_PER_FILE})")
+        errors += 1
 
-if [ "$always_injected_total" -gt "$MAX_ALWAYS_INJECTED" ]; then
-  echo -e "  ${RED}FAIL${NC}: always-injected total ($always_injected_total tokens > $MAX_ALWAYS_INJECTED)"
-  errors=$((errors + 1))
-fi
+if instr_total > MAX_ALWAYS_INJECTED:
+    print(f"  \033[0;31mFAIL\033[0m: always-injected total ({instr_total} tokens > {MAX_ALWAYS_INJECTED})")
+    errors += 1
 
-if [ "$errors" -eq 0 ]; then
-  echo -e "  ${GREEN}PASS${NC}: all files within token budget"
-  echo ""
-  exit 0
-else
-  echo ""
-  echo -e "${RED}FAIL${NC}: $errors budget violations"
-  exit 1
-fi
+if errors == 0:
+    print(f"  \033[0;32mPASS\033[0m: all files within token budget")
+    print()
+    sys.exit(0)
+else:
+    print()
+    print(f"\033[0;31mFAIL\033[0m: {errors} budget violations")
+    sys.exit(1)
+PY

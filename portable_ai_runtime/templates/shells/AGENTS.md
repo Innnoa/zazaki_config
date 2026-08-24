@@ -23,7 +23,7 @@
 | Task | Required Reads | Workflow |
 | --- | --- | --- |
 | <!-- FILL: task type --> | <!-- FILL: files --> | <!-- FILL: workflow --> |
-| Other / unlisted | AGENTS.md, rules/ai/session-discipline.md, rules/ai/routing-rules.md | Match closest workflow, explain why |
+| Other / unlisted | AGENTS.md, rules/ai/routing-rules.md（含会话纪律） | Match closest workflow, explain why |
 | Multi-subtask | workflows/ai/subagent-routing.md | subagent-driven-development |
 
 ## Auto-Triggers

@@ -152,7 +152,17 @@ if errors:
 # --- cross-reference scan ----------------------------------------------------
 # Recursively extract file references from governance .md files
 # and verify that every referenced path exists.
-md_files = list(root.rglob("rules/ai/*.md")) + list(root.rglob("workflows/ai/*.md")) + [root / "AGENTS.md"]
+_EXCLUDE_DIRS = {".git", ".worktrees", "node_modules", "ocr-venv", "outputs", "__pycache__"}
+def _governance_md_files():
+    files = []
+    for pattern in ("rules/ai/*.md", "workflows/ai/*.md"):
+        for p in root.rglob(pattern):
+            if any(part in _EXCLUDE_DIRS for part in p.parts):
+                continue
+            files.append(p)
+    return sorted(set(files))
+
+md_files = _governance_md_files() + [root / "AGENTS.md"]
 ref_pattern = re.compile(r"`([^\s`]+\.(?:md|sh|py|ts|json))`")
 
 broken_refs = []
@@ -165,8 +175,8 @@ for md_file in sorted(set(md_files)):
         if ref.endswith(".md"):
             if ref.startswith("http://") or ref.startswith("https://") or "://" in ref:
                 continue
-        if "/*" in ref:
-            continue  # skip glob patterns — cannot resolve to a single file
+        if "/*" in ref or "<" in ref or ">" in ref:
+            continue  # skip glob patterns and template placeholders — cannot resolve to a single file
         if ref.startswith("~/"):
             resolved = Path(ref).expanduser()
         elif not ref.startswith("/") and not ref.startswith("./"):
@@ -216,7 +226,7 @@ def resolve_ref(from_file: Path, raw: str) -> str | None:
         return str(r.resolve())
     return None
 
-for md_file in sorted({p.resolve() for p in md_files if p.exists()}):
+for md_file in sorted({p.resolve() for p in _governance_md_files() if p.exists()}):
     text = md_file.read_text(encoding="utf-8")
     for match in ref_pattern.findall(text):
         target = resolve_ref(md_file, match)

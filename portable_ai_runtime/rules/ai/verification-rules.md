@@ -20,12 +20,30 @@
 - 如果本次结论依赖“没有类型/语法/配置错误”这类判断，优先补充原生 LSP 诊断证据或明确说明当前无法取得。
 - 如果本次结论依赖“定义/引用/调用关系/符号边界”这类判断，优先补充 `serena` 等语义级证据或明确说明当前无法取得。
 
+### CI 作为 ground truth
+
+- 如果当前仓库有可查询的 CI（GitHub Actions 等），本地验证通过后还应检查远端 CI 结果：优先运行 `gh pr checks`（或 `gh run list --limit 5`）确认检查状态。
+- 本地通过不等于 CI 通过；CI 有失败项时，不得以本地结果宣称任务完成。
+- CI 不可达（无远端、未登录 gh）时，明确说明“CI 证据缺失”，不要虚构检查结果。
+- 相关命令入口：`/ci-check`。
+
+### 快照/黄金文件测试（推荐实践）
+
+- 对接口返回、渲染输出、CLI 输出等稳定面使用快照测试（vitest/jest/pytest-snapshot），回归时快速暴露预期外变化。
+- 对 UI 视觉面使用 Playwright 截图 + 图片对比（golden image），改动前后 diff 可见。
+- 快照更新需人工确认，禁止无理由 `-u` 批量刷新。
+
 ### 治理系统变更的额外验证
 
 - 如果本次修改的是 AI 治理系统本身（如 `AGENTS.md`、`rules/ai/*`、`workflows/ai/*`、`references/ai/*`、`agents/*`、`opencode.json` 或状态文件），在宣称完成前必须运行 `workflows/ai/check-governance-consistency.md`。
+- 治理变更的完成验证必须包含以下命令的实际运行结果（阻塞性）：
+  - `bash scripts/ai-governance-smoke-check.sh` — 入口块、注入路径、阈值、交叉引用完整性
+  - `bash scripts/test-trigger.sh` — 路由引用路径存在性校验
+- 仅当以上两条均 PASS 时，才可宣称治理变更完成。
 - 该检查至少覆盖与本次变更相关的规则、workflow、reference、agent prompt、运行配置和状态文件；如果某一层按理应变却未改，必须明确写出原因。
 - 治理一致性检查的汇报至少包含：检查范围、实际核对的文件、路径存在性结果、是否发现冲突或漂移。
 - 高频治理场景优先复用 `references/ai/verification-templates.md` 的对应模板组织证据；不要在 workflow 或 guide 里各自复制一套长检查单。
+- 涉及运行时生效变更时，按 `references/ai/runtime-refresh-rules.md` 判断是否需要 refresh 及需要何种刷新证据。
 - 如果本次变更触及入口壳、会话纪律、token 预算或 `opencode.json` 注入路径，额外参考 `references/ai/governance-smoke-check.md` 做一次轻量失活检查。
 
 ### 会话预算规则的额外验证

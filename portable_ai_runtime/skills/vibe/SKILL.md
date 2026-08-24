@@ -45,8 +45,13 @@ Stages may become lighter for smaller work, but they are not skipped as a policy
 Supported governed mode:
 
 - `interactive_governed`
+  每个涉及用户确认的阶段必须执行以下 STOP 检查：
 
-Use it when the system should still ask high-value questions, freeze requirements explicitly, and pause at plan approval boundaries.
+  - [ ] requirement_doc 产出后：用户是否已审阅并批准需求文档？未批准 → STOP，不进入 xl_plan
+  - [ ] xl_plan 产出后：用户是否已审阅并批准执行计划？未批准 → STOP，不进入 plan_execute
+  - [ ] 任何阶段中发现高价值决策点：是否已启动 grill-me 访谈（`rules/ai/grill-me-protocol.md`）逐条确认？
+
+  以上任一 STOP 触发时，不得越过当前阶段继续执行。
 
 ## Root And Child Boundaries
 
@@ -105,3 +110,5 @@ Governed runs should leave behind the requirement, the plan, phase receipts, and
 - Updated: 2026-04-07
 - Canonical router: `scripts/router/resolve-pack-route.ps1`
 - Primary contract metadata: `config/runtime-contract.json`
+
+本文件中的用户确认点遵循 `rules/ai/grill-me-protocol.md`：一次一问、每问带推荐、深度优先遍历。

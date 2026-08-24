@@ -23,6 +23,7 @@
 2. `opencode.json` 的 `instructions` 是否同时覆盖：
    - `~/.config/opencode/rules/*.md`
    - `~/.config/opencode/rules/ai/*.md`
+（`rules/*.md` 根目录当前无文件；此项为防御性检查）
 3. `100000` 与 `150000` 阈值是否只保留一套正式定义，没有冲突版本
 4. 会话预算规则是否至少在以下两层出现锚点：
    - 顶层入口
@@ -53,13 +54,7 @@
 
 当前会话内可通过以下方式做静态验证：
 
-```bash
-# 确认插件文件存在且语法正确
-npx tsc --noEmit plugins/session-governance.ts 2>&1 || echo "TS check not available"
-
-# 确认所有 hook 回调已注册
-rg "permission.ask|experimental.chat.system.transform|experimental.session.compacting" plugins/session-governance.ts
-```
+静态验证可通过 `scripts/plugin-status-check.sh` 执行。
 
 ### 通过标准
 
