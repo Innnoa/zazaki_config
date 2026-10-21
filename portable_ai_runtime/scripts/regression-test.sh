@@ -39,6 +39,10 @@ run_check "vibe paths"                "check-vibe-config-paths.py"
 echo ""
 run_check "gitignore check"          "gitignore-check.sh"
 echo ""
+run_check "structure check"          "structure-check.sh"
+echo ""
+run_check "doc drift audit"          "doc-drift-audit.sh"
+echo ""
 
 echo "=== Results ==="
 for r in "${RESULTS[@]}"; do

@@ -83,7 +83,7 @@
 运行层决定系统真正怎么工作：
 
 - `opencode.json`：provider、agent、command、MCP、plugin 总配置
-- `plugins/session-governance.ts`：运行时治理插件
+- `plugins/session-governance/`：运行时治理插件
 - `skills/`：按需加载的能力包
 - `commands/`：显式命令入口
 - `scripts/`：机械检查、goal-runner、安装与辅助脚本
@@ -112,7 +112,7 @@
 
 ### 3.3 运行时护栏
 
-- `plugins/session-governance.ts` 会在运行时注入治理上下文
+- `plugins/session-governance/` 会在运行时注入治理上下文
 - 对治理文件编辑做额外确认
 - 对过大的治理文件做拒绝保护
 - 在 compaction 时保留任务状态、决策和预算规则

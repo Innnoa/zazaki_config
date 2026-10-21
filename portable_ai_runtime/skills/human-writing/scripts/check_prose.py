@@ -199,6 +199,28 @@ METAPHOR_FIELDS = {
     "海洋航行": ("蓝海", "浪潮", "潮水", "航船", "灯塔", "彼岸"),
 }
 
+SIMILE_PATTERNS = (
+    re.compile(
+        r"(?<![相不图录头肖偶塑铜石佛遗坐立倒画影视])"
+        r"像[^，。！？；\n]{1,55}?(?:似的|一样|一般|般)"
+    ),
+    re.compile(
+        r"(?<![相不图录头肖偶塑铜石佛遗坐立倒画影视])"
+        r"像[^，。！？；\n]{2,40}[，。！？]"
+    ),
+    re.compile(r"(?:仿佛|如同|宛如|好似)[^，。！？；\n]{1,50}[，。！？]"),
+)
+
+SOUND_ATMOSPHERE_PATTERNS = (
+    re.compile(r"没(?:有)?出[^，。！？；\n]{0,3}声"),
+    re.compile(r"(?:一点|一丝|任何|什么)[^，。！？；\n]{0,2}(?:声音|动静)(?:都|也)?(?:没有|没)"),
+    re.compile(r"(?:悄无声息|无声无息|悄没声|没有任何声音|没有一点声音|没有声音)"),
+    re.compile(r"(?:安静|静)了(?:一截|一下|下来|一点|几分)"),
+    re.compile(r"(?:极轻|很轻|轻得)"),
+    re.compile(r"[响叫嗡咚砰咔叮铛咕](?:了)?(?:一下|两下|几下|一声|两声|三声)"),
+    re.compile(r"(?:脚步|关门|开门|推门|呼吸|心跳|电流)(?:的)?声"),
+)
+
 
 @dataclass
 class Paragraph:
@@ -609,6 +631,50 @@ def main() -> int:
             f"例词有 {samples}。"
         )
 
+    simile_matches = all_matches(prose, SIMILE_PATTERNS)
+    simile_spans = []
+    similes = []
+    for match in simile_matches:
+        if any(
+            match.start() < end and match.end() > start
+            for start, end in simile_spans
+        ):
+            continue
+        simile_spans.append(match.span())
+        similes.append(match)
+    simile_limit = max(3, total_han // 500)
+    if len(similes) > simile_limit:
+        samples = "；".join(
+            f"第 {line_number(text, match.start())} 行“{excerpt(match.group(), 30)}”"
+            for match in similes[:5]
+        )
+        warnings.append(
+            f"明喻共 {len(similes)} 处，当前提醒线为 {simile_limit} 处。{samples}。"
+            "两三条里留最准的一条，其余写成它本来的样子。"
+        )
+
+    sound_hits = all_matches(prose, SOUND_ATMOSPHERE_PATTERNS)
+    sound_spans = []
+    sound_atmosphere = []
+    for match in sound_hits:
+        if any(
+            match.start() < end and match.end() > start
+            for start, end in sound_spans
+        ):
+            continue
+        sound_spans.append(match.span())
+        sound_atmosphere.append(match)
+    sound_limit = max(3, total_han // 500)
+    if len(sound_atmosphere) > sound_limit:
+        samples = "；".join(
+            f"第 {line_number(text, match.start())} 行“{excerpt(match.group(), 24)}”"
+            for match in sound_atmosphere[:6]
+        )
+        warnings.append(
+            f"声音凑气氛 {len(sound_atmosphere)} 处，当前提醒线为 {sound_limit} 处。{samples}。"
+            "每处先问这是谁的耳朵、此刻为什么听见、听完变了什么，答不上来就删。"
+        )
+
     print(f"汉字数 {total_han}")
     print(
         f"翻案句 {len(pivots)}，翻案腔变形 {len(semantic_pivots)}，"
@@ -616,7 +682,8 @@ def main() -> int:
         f"黑话 {len(jargon_matches)}，硬停词 {len(stop_matches)}，"
         f"模型路标 {len(road_signs)}，需辨语境词 {len(context_jargon_matches)}，"
         f"抒情词 {len(lyric_matches)}，洞察路标 {len(marker_matches)}，"
-        f"长前置成分 {len(left_branches)}，重定语句 {len(dense_de)}"
+        f"长前置成分 {len(left_branches)}，重定语句 {len(dense_de)}，"
+        f"明喻 {len(similes)}，声音凑气氛 {len(sound_atmosphere)}"
     )
 
     if failures:

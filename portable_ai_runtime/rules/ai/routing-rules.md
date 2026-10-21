@@ -24,6 +24,38 @@
 5. 如果任务会复用既有技术取舍、约束、迁移背景或历史决定，则读取 `DECISIONS.md`
 6. 如果任务是对当前配置仓本身做治理修改，再补读相关 `rules/ai/` 和 `workflows/ai/`
 
+#### 规则文件索引（按需读）
+
+本表是薄壳之外全部 `rules/ai/` 规则的唯一路由入口。壳只强制注入 `AGENTS.md` 与本文件，其余按本表读取。
+
+| 规则文件 | 何时读 |
+| --- | --- |
+| `rules/ai/verification-rules.md` | 宣称完成、判断是否可提交前 |
+| `rules/ai/task-closure.md` | 非琐碎任务收尾（AAR、handoff 判断） |
+| `rules/ai/recording-rules.md` | 要写 `CURRENT_TASK.md` / `DECISIONS.md` / `AI_GUIDE.md` / AAR inbox 时 |
+| `rules/ai/commit-and-delivery-rules.md` | 提交前审查与交付说明 |
+| `rules/ai/auto-trigger-rules.md` | 判断当前任务是否应加载某 skill |
+| `rules/ai/grill-me-protocol.md` | 需要用户决策、设计取舍、范围界定时 |
+| `rules/ai/intuition-probe-protocol.md` | 盲测 API / 配置 / CLI / UI 直觉性 |
+| `rules/ai/brainstorming-rules.md` | 新功能、行为变更、探索性设计 |
+| `rules/ai/plan-writing-rules.md` | 编写多步执行计划 |
+| `rules/ai/agent-mode-selection.md` | 选择主/子 agent 模式或派发 subagent |
+| `rules/ai/opencode-surface-precedence.md` | command / agent 文件面与 JSON 面双定义冲突 |
+| `rules/ai/personal-tools.md` | 用到本机个人工具（zazaki_ping / zssh / zsql / zgrab 等） |
+
+#### 流程文件索引
+
+| 工作流 | 何时读 |
+| --- | --- |
+| `workflows/ai/fix-and-review.md` | 修 bug / 代码审查 |
+| `workflows/ai/brainstorming.md` | 新功能探索（与 `brainstorming-rules.md` 配套） |
+| `workflows/ai/plan-writing.md` | 写计划（与 `plan-writing-rules.md` 配套） |
+| `workflows/ai/plan-and-implement.md` | 计划冻结后实施 |
+| `workflows/ai/subagent-routing.md` | 派发多 agent / subagent 前 |
+| `workflows/ai/project-ai-integration.md` | 个人项目接入 AI 治理 |
+| `workflows/ai/update-rules.md` | 规则新增 / 更新 / 清退 |
+| `workflows/ai/check-governance-consistency.md` | 治理变更后一致性检查 |
+
 ### Common Tasks
 
 #### 默认路径：非琐碎工作 → `vibe`
@@ -39,13 +71,14 @@ vibe 的 6 阶段合约（skeleton_check → deep_interview → requirement_doc 
 #### 不走 vibe 的专用路径
 
 以下场景使用专用路径，不经过 vibe：
-- 修 bug（已知根因）：`systematic-debugging` → `workflows/ai/fix-and-review.md`
+- 修 bug（根因已知）：直接 `workflows/ai/fix-and-review.md`；根因不明时先走 `systematic-debugging` 定位（与 AGENTS.md Bug fix 表行语义一致）
 - 纯信息问答/查资料：直接回答，不走任何 workflow
 - 代码审查：`workflows/ai/fix-and-review.md`，保持 reviewer mindset
 - UI/UX 设计/审查：`ux-design` skill
 - 单文件小改（<20 行，纯执行，无设计决策）：直接执行
 - 需要跨会话粘贴提示词：`/new-session`
 - 多子任务且相互独立、但无需冻结需求/计划的轻量任务：`subagent-driven-development`
+- 个人项目接入 AI 治理（评估哪些项目适合 + 接线方式）：`workflows/ai/project-ai-integration.md`
 
 #### 其他
 

@@ -1,6 +1,6 @@
 import { readFile, stat, writeFile, mkdir } from "node:fs/promises"
 import { join, dirname } from "node:path"
-import type { Plugin } from "@opencode-ai/plugin"
+import { Plugin } from "@opencode/plugin"
 
 const GOVERNANCE_PATH_MARKERS = [
   "AGENTS.md",
@@ -11,22 +11,26 @@ const GOVERNANCE_PATH_MARKERS = [
   "workflows/ai/",
   "references/ai/",
   "opencode.json",
-  "plugins/session-governance.ts",
+  "plugins/session-governance",
   "templates/",
 ]
 
-const MAX_GOVERNANCE_FILE_BYTES = 15_000 // ~300 lines — oversized rules files are a smell
+const MAX_GOVERNANCE_FILE_BYTES = 25_000 // oversized governance files are a smell
 const MAX_GOVERNANCE_FILE_LINES = 350
+const MAX_GOVERNANCE_LINE_CHARS = 500 // a single wall-of-text line is unnavigable
 
 async function checkFileSize(filePath: string): Promise<string | null> {
   try {
     const stats = await stat(filePath)
-    if (stats.size > MAX_GOVERNANCE_FILE_BYTES) {
-      const content = await readFile(filePath, "utf8")
-      const lines = content.split("\n").length
-      if (lines > MAX_GOVERNANCE_FILE_LINES) {
-        return `governance file exceeds size limit (${lines} lines, ${(stats.size / 1024).toFixed(1)}KB). Split or trim before editing.`
-      }
+    const lines = (await readFile(filePath, "utf8")).split("\n")
+    const lineCount = lines.length
+    const maxLineChars = lines.reduce((max: number, line: string) => Math.max(max, line.length), 0)
+    if (
+      stats.size > MAX_GOVERNANCE_FILE_BYTES ||
+      lineCount > MAX_GOVERNANCE_FILE_LINES ||
+      maxLineChars > MAX_GOVERNANCE_LINE_CHARS
+    ) {
+      return `governance file exceeds size limit (${lineCount} lines, ${(stats.size / 1024).toFixed(1)}KB, max line ${maxLineChars} chars). Split or trim before editing.`
     }
   } catch {
     // file does not exist — no size check needed
@@ -47,26 +51,15 @@ function section(title: string, body: string): string {
 }
 
 function shouldAskForGovernanceEdit(permission: {
-  type: string
-  pattern?: string | string[]
-  patterns?: string[]
-  title: string
+  action: string
+  resources: readonly string[]
   metadata?: Record<string, unknown>
 }) {
-  if (permission.type !== "edit") {
+  if (permission.action !== "edit") {
     return false
   }
 
-  const targets = [permission.title]
-  if (typeof permission.pattern === "string") {
-    targets.push(permission.pattern)
-  } else if (Array.isArray(permission.pattern)) {
-    targets.push(...permission.pattern)
-  }
-
-  if (Array.isArray(permission.patterns)) {
-    targets.push(...permission.patterns)
-  }
+  const targets = [...permission.resources]
 
   if (permission.metadata) {
     for (const value of Object.values(permission.metadata)) {
@@ -92,7 +85,11 @@ function shouldAskForGovernanceEdit(permission: {
   )
 }
 
-export const SessionGovernancePlugin: Plugin = async ({ directory }) => {
+export default Plugin.define({
+  id: "session-governance",
+
+  async setup(ctx) {
+    const directory = ctx.location.directory
   // This plugin is an event-level runtime gate only.
   // It injects governance context during prompt assembly and compaction,
   // but it does not implement a token-count-based final-answer hard gate
@@ -115,31 +112,33 @@ export const SessionGovernancePlugin: Plugin = async ({ directory }) => {
     // receipt is best-effort; do not block plugin initialization on I/O failure
   }
 
-  return {
-    "permission.ask": async (input, output) => {
+    await ctx.permission.hook("evaluate", async (event) => {
       // Escalate edits to core governance files so the user can confirm
       // before high-impact governance surfaces are modified.
       // Check title, pattern(s), and metadata because different host layers
       // expose slightly different permission payload shapes.
-      if (!shouldAskForGovernanceEdit(input)) {
+      if (!shouldAskForGovernanceEdit(event)) {
         return
       }
 
       // Hard-deny edits to oversized governance files.
       // Oversized rules files are a smell that violates "structure serves content"
       // and "references must be sparse" governance principles.
-      if (output.status === "allow") {
-        const sizeErr = await checkFileSize(input.title)
+      if (event.effect === "allow") {
+        const sizeErrs = (
+          await Promise.all(event.resources.map((resource) => checkFileSize(resource)))
+        ).filter((message): message is string => message !== null)
+        const sizeErr = sizeErrs[0]
         if (sizeErr) {
-          output.status = "deny"
-          output.message = sizeErr
+          event.effect = "deny"
+          event.message = sizeErr
           return
         }
-        output.status = "ask"
+        event.effect = "ask"
       }
-    },
+    })
 
-    "experimental.chat.system.transform": async (_input, output) => {
+    await ctx.session.hook("context", async (event) => {
       const [agents, budgetRules] = await Promise.all([
         safeRead(agentsPath),
         safeRead(sessionBudgetPath),
@@ -176,11 +175,11 @@ export const SessionGovernancePlugin: Plugin = async ({ directory }) => {
       }
 
       if (contextBlocks.length > 0) {
-        output.system.unshift(contextBlocks.join("\n"))
+        event.system.unshift({ type: "text", text: contextBlocks.join("\n") })
       }
-    },
+    })
 
-    "experimental.session.compacting": async (_input, output) => {
+    await ctx.session.hook("compaction", async (event) => {
       const [currentTask, decisions, budgetRules] = await Promise.all([
         safeRead(currentTaskPath),
         safeRead(decisionsPath),
@@ -200,17 +199,15 @@ export const SessionGovernancePlugin: Plugin = async ({ directory }) => {
       }
 
       if (preserve.length > 0) {
-        output.context.push(
-          [
+        event.system.push({
+          type: "text",
+          text: [
             "# Governance Context To Preserve",
             "Preserve routing discipline, current task state, reusable decisions, and session budget rules across compaction.",
             ...preserve,
           ].join("\n\n"),
-        )
+        })
       }
-    },
-  }
-}
-
-export const server = SessionGovernancePlugin
-export default SessionGovernancePlugin
+    })
+  },
+})

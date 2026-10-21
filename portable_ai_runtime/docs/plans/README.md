@@ -1,12 +1,9 @@
-# Plans Directory
+# Governed Plans
 
-`$vibe` 路径下冻结后的执行计划放这里。
+此目录用于 `vibe` runtime 冻结 canonical governed execution plan。
 
-建议命名：
+- 默认路径形如：`docs/plans/YYYY-MM-DD-<topic>-execution-plan.md`
+- 这里的计划面向 governed runtime，不等同于 `docs/superpowers/plans/`
+- `docs/superpowers/plans/` 继续承接非 `vibe` 路径下的手工 planning / writing-plans 产物
 
-- `YYYY-MM-DD-<topic>-execution-plan.md`
-
-要求：
-
-- 写清阶段顺序、文件范围、验证命令、回滚方式和清理要求。
-- 计划内容应与同名 requirement 对应，避免出现第二份权威计划。
+不要在两个目录里为同一 governed task 维护两份 canonical execution plan。

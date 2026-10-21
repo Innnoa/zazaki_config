@@ -1,7 +1,7 @@
 # Rationalizations to Reject
 
 > **触发频率：低** — 此文件为人工审查参考，AI 日常任务路由上不自动激活。
-> 实际反制措施的执行依靠 `AGENTS.md` 的 Red Flags 块和 `plugins/session-governance.ts` 的权限升级 hook，
+> 实际反制措施的执行依靠 `AGENTS.md` 的 Red Flags 块和 `plugins/session-governance/index.ts` 的权限升级 hook，
 > 不依赖 AI 阅读本文件后启动"反借口自检"。
 
 Agent 在压力下常用来绕过流程的真实说辞。只从真实失败里收集，不凭空扩写。

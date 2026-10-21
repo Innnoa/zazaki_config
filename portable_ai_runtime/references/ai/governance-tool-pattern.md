@@ -7,3 +7,5 @@ Governance tool 命令按三件套组织：
 3. `opencode.json` command registration — template 形式调用 bash 脚本，注册为可用命令。
 
 先例：`scripts/ai-governance-smoke-check.sh`、`scripts/test-trigger.sh`、`scripts/ai-trigger-check.sh`、`scripts/regression-test.sh`。新增治理检查命令时复用该成套结构，保证幂等、可发现、可注册。
+
+脚本的退出码与输出约定见 `references/ai/script-error-handling.md`。

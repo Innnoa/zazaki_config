@@ -12,8 +12,8 @@
 | 视角约束 | `pov-writing` | `skills/pov-writing/` | 严格 POV：只写视角人物知道的信息，小说创作默认触发，叠加于创作引擎，最高优先 |
 | 改稿维修 | `humanizer-zh` | `skills/humanizer-zh/` | 对已有文本去 AI 味、润色、量化门槛检查（12 条硬门槛 + 24 种模式） |
 | 硬检查 | `check_prose.py` | `skills/human-writing/scripts/` | 成稿硬禁令清零（冒号/破折号/翻案腔/三项排比），纯 stdlib |
-| 自动触发 | `auto-human-writing-rule.md` | `rules/ai/` | 网文/小说/中文长文创作场景自动加载 `human-writing` |
-| 自动触发 | `auto-humanizer-rule.md` | `rules/ai/` | 去 AI 味改写场景自动加载 `humanizer-zh` |
+| 自动触发 | `auto-trigger-rules.md` | `rules/ai/` | 网文/小说/中文长文创作场景自动加载 `human-writing` |
+| 自动触发 | `auto-trigger-rules.md` | `rules/ai/` | 去 AI 味改写场景自动加载 `humanizer-zh` |
 | 辅助 | `gptimage2-prompting` | `skills/gptimage2-prompting/` | 文生图提示词（小说插画/封面） |
 | 辅助 | `brainstorming` | `skills/brainstorming/` | 开写前的创意、设定、结构讨论 |
 | 辅助 | `grill-me` | `skills/grill-me/` | 逐个确认设定、世界观、决策点 |
@@ -28,7 +28,7 @@
 
 - **自动**：新会话中用户请求命中 `human-writing` / `humanizer-zh` 的 description 或对应 auto 规则即加载，无需显式调用
 - **显式**：`使用 $human-writing，把我的材料写成一篇有活人感的作品`
-- **触发消解**：创作词（写/续写/码字/更新 + 文体）→ `human-writing`；改稿词（改/润色/去AI味 + 已有文本）→ `humanizer-zh`；模糊场景看文本来源，详见 `rules/ai/auto-human-writing-rule.md`
+- **触发消解**：创作词（写/续写/码字/更新 + 文体）→ `human-writing`；改稿词（改/润色/去AI味 + 已有文本）→ `humanizer-zh`；模糊场景看文本来源，详见 `rules/ai/auto-trigger-rules.md`
 
 ## 边界与分工
 

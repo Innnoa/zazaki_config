@@ -1,12 +1,9 @@
-# Requirements Directory
+# Governed Requirements
 
-`$vibe` 路径下冻结后的 requirement 文档放这里。
+此目录用于 `vibe` runtime 冻结 canonical requirement 文档。
 
-建议命名：
+- 默认路径形如：`docs/requirements/YYYY-MM-DD-<topic>.md`
+- 这里的文档面向 governed runtime，不等同于 `docs/superpowers/specs/`
+- `docs/superpowers/specs/` 继续承接非 `vibe` 路径下的手工设计 / brainstorming spec
 
-- `YYYY-MM-DD-<topic>.md`
-
-要求：
-
-- 写清目标、范围、约束、验收标准和非目标。
-- 后续执行以 requirement 为单一事实来源，不继续依赖整段聊天历史。
+不要在两个目录里为同一 governed task 维护两份 requirement 真值面。

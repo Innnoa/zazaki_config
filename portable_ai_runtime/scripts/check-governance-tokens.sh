@@ -35,12 +35,12 @@ print("=== Governance Token Audit ===")
 print(f"Tokenizer: {TOKENIZER}")
 print()
 
-# ── Always-injected: instructions (3 files) ──────────────────────
+# ── Always-injected thin shell: instructions ─────────────────────
+# AGENTS.md is auto-loaded by opencode (measured under entry + plugin),
+# so the instructions surface is the routing authority only.
 print("--- always injected (instructions) ---")
 instr_files = [
     root / "rules/ai/routing-rules.md",
-    root / "rules/ai/task-closure.md",
-    root / "rules/ai/verification-rules.md",
 ]
 instr_total = 0
 for f in instr_files:
@@ -57,7 +57,7 @@ print()
 # ── On-demand rules ──────────────────────────────────────────────
 print("--- on-demand rules/ai/ ---")
 on_demand_total = 0
-always_injected_names = {"rules/ai/routing-rules.md", "rules/ai/task-closure.md", "rules/ai/verification-rules.md"}
+always_injected_names = {"rules/ai/routing-rules.md"}
 for f in sorted(root.glob("rules/ai/*.md")):
     rel = str(f.relative_to(root))
     if rel in always_injected_names:
@@ -93,11 +93,11 @@ print()
 # ── Entry + Plugin ───────────────────────────────────────────────
 print("--- entry + plugin ---")
 agents_f = root / "AGENTS.md"
-plugin_f = root / "plugins" / "session-governance.ts"
+plugin_f = root / "plugins" / "session-governance" / "index.ts"
 agents_tokens = count_tokens(agents_f) if agents_f.exists() else 0
 plugin_tokens = count_tokens(plugin_f) if plugin_f.exists() else 0
 print(f"  {'AGENTS.md':<45} {agents_tokens} tokens")
-print(f"  {'plugins/session-governance.ts':<45} {plugin_tokens} tokens")
+print(f"  {'plugins/session-governance/index.ts':<45} {plugin_tokens} tokens")
 print(f"  {'subtotal (entry+plugin)':<45} {agents_tokens + plugin_tokens} tokens")
 print()
 
@@ -129,8 +129,8 @@ print("=========================================")
 print()
 
 # ── Budget checks ────────────────────────────────────────────────
-MAX_PER_FILE = 2000
-MAX_ALWAYS_INJECTED = 4500
+MAX_PER_FILE = 2500
+MAX_ALWAYS_INJECTED = 3000
 
 print("--- budget checks ---")
 for f in sorted(root.glob("rules/ai/*.md")):

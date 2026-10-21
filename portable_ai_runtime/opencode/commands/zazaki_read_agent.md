@@ -36,7 +36,7 @@ description: 系统通读当前 AI 治理系统，了解运作方式与能力边
 - 列出 `~/.config/opencode/skills/` 下所有技能名
 - 列出 `~/.config/opencode/commands/` 下所有命令名
 - 列出 `~/.config/opencode/scripts/` 下关键脚本
-- 读 `~/.config/opencode/plugins/session-governance.ts` 的前 60 行
+- 读 `~/.config/opencode/plugins/session-governance/index.ts` 的前 60 行
 
 ### 3. 输出总结
 

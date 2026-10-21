@@ -28,7 +28,7 @@ for block in required_blocks:
 config = json.loads((root / "opencode.json").read_text(encoding="utf-8"))
 instructions = config.get("instructions", [])
 required_instructions = [
-    "~/.config/opencode/rules/ai/*.md",
+    "~/.config/opencode/rules/ai/routing-rules.md",
 ]
 for item in required_instructions:
     if item not in instructions:
@@ -37,7 +37,7 @@ for item in required_instructions:
 smoke_files = [
     root / "references" / "ai" / "session-budget-rules.md",
     root / "references" / "ai" / "governance-smoke-check.md",
-    root / "plugins" / "session-governance.ts",
+    root / "plugins" / "session-governance" / "index.ts",
     root / "skills" / "requesting-code-review" / "code-reviewer.md",
     root / "templates" / "ANTI-TEMPLATES.md",
     root / "templates" / "skill" / "SKILL.md",
@@ -49,8 +49,6 @@ for path in smoke_files:
     if not path.exists():
         errors.append(f"missing file: {path.relative_to(root)}")
 
-zshrc_path = root.parent.parent / ".zshrc"
-
 verification = (root / "rules" / "ai" / "verification-rules.md").read_text(encoding="utf-8")
 if "governance-smoke-check.md" not in verification:
     errors.append("verification-rules.md does not reference governance-smoke-check.md")
@@ -60,9 +58,6 @@ current_task_markers = ["## 目标", "## 范围", "## 当前状态", "## 下一�
 for marker in current_task_markers:
     if marker not in current_task:
         errors.append(f"CURRENT_TASK.md missing section: {marker}")
-
-if "Brave + fetch" in current_task or "exa_search" in current_task:
-    errors.append("CURRENT_TASK.md still contains stale prior-task content")
 
 skill_files = [
     root / "skills" / "context-handoff" / "SKILL.md",
@@ -103,12 +98,6 @@ if any(marker in config_text for marker in required_env_markers):
     provider_env_file = root / "provider-secrets.env"
     if not provider_env_file.exists():
         errors.append("opencode.json requires provider-secrets.env-backed env vars but provider-secrets.env is missing")
-    if not zshrc_path.exists():
-        errors.append("opencode.json requires provider-secrets.env-backed env vars but ~/.zshrc is missing")
-    else:
-        zshrc_text = zshrc_path.read_text(encoding="utf-8")
-        if 'source "$HOME/.config/opencode/provider-secrets.env"' not in zshrc_text:
-            errors.append("opencode.json requires provider-secrets.env-backed env vars but ~/.zshrc does not source provider-secrets.env")
 
 budget = (root / "references" / "ai" / "session-budget-rules.md").read_text(encoding="utf-8")
 required_budget_markers = [

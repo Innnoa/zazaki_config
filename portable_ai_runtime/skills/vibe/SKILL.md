@@ -98,7 +98,7 @@ Governed runs should leave behind the requirement, the plan, phase receipts, and
 
 ## Boundaries
 
-- canonical router owns route selection
+- canonical router owns route selection. resolve-pack-route is pack-internal only (bundled-skill resolution and execution orchestration inside the vibe pack); agent-facing task routing is governed by rules/ai/routing-rules.md, the single authority for routing decisions.
 - `vibe` owns governed runtime authority
 - specialist help is allowed only as bounded assistance, not a second runtime
 - host adapters may shape implementation details, but must not fork runtime truth

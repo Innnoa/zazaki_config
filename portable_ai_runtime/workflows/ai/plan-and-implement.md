@@ -7,7 +7,7 @@
    - [ ] 是否已有经过用户批准的设计方案？
 
    未通过 → **STOP。返回 brainstorming（`skills/brainstorming/SKILL.md`），呈现设计并获得用户批准后再返回。**
-4. 产出或更新设计产物，确保方案可执行；规划产物默认放在 `docs/superpowers/specs/` 和 `docs/superpowers/plans/`
+4. 产出或更新设计产物，确保方案可执行；规划产物默认放在 `docs/requirements/` 和 `docs/plans/`（与 vibe 产物落点一致，均为 gitignore 排除的 AI 产物目录）
 5. 多步骤工作在实现前：
 
    - [ ] 是否已有完整的实现计划？

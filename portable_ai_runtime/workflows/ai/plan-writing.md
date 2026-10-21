@@ -4,7 +4,7 @@
 
 - 本工作流由 `skills/writing-plans/SKILL.md` 路由触发。
 - 计划编写的约束规则在 `rules/ai/plan-writing-rules.md`，执行前必须满足。
-- 计划默认保存到 `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`（用户偏好覆盖默认值）。
+- 计划默认保存到 `docs/plans/YYYY-MM-DD-<feature-name>.md`（用户偏好覆盖默认值；与 vibe 产物落点一致，gitignore 排除）。
 
 ### 步骤 1：宣布并确认上下文
 

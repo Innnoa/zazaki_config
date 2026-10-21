@@ -11,3 +11,5 @@
 9. 如果本次变更会影响 `serena`、原生 LSP、MCP、agent prompt 或其他需要 reload / restart / reactivate 才会真正生效的运行面，先按 `references/ai/runtime-refresh-rules.md` 判断刷新要求，再决定是否可以宣称完成
 10. 对纯静态治理文档更新，不要伪造 runtime refresh；对运行时生效变更，也不要只用“文件改了”替代刷新后的真实证据
 11. 如果本次属于高频治理场景，完成汇报时优先复用 `references/ai/verification-templates.md` 的对应模板；只引用，不在本文件重写模板正文
+12. 新增治理检查命令时复用成套结构（脚本 + command + 注册），见 `references/ai/governance-tool-pattern.md`
+13. 把组织级规范文档转成 skill 时复用可复用路径，见 `references/ai/doc-to-skill-pattern.md`

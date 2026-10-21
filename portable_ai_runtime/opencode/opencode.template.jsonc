@@ -16,14 +16,18 @@
     "deepseek": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "DeepSeek",
-      "whitelist": ["deepseek-v4-flash", "deepseek-v4-pro"],
+      "whitelist": ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-v4-flash-vision-exp"],
       "options": {
         "baseURL": "https://api.deepseek.com/v1",
         "apiKey": "{env:DEEPSEEK_API_KEY}"
       },
       "models": {
         "deepseek-v4-flash": { "name": "DeepSeek V4 Flash" },
-        "deepseek-v4-pro":  { "name": "DeepSeek V4 Pro" }
+        "deepseek-v4-pro":  { "name": "DeepSeek V4 Pro" },
+        "deepseek-v4-flash-vision-exp": {
+          "name": "DeepSeek V4 Flash Vision",
+          "limit": { "context": 65536, "input": 65536, "output": 8192 }
+        }
       }
     }
   },
@@ -31,7 +35,7 @@
   "small_model": "deepseek/deepseek-v4-pro",
   "permission": "allow",
   "share": "disabled",
-  "plugin": ["./plugins/session-governance.ts"],
+  "plugins": ["./plugins/session-governance", "./plugins/verify-gates"],
   "lsp": true,
   "mcp": {
     "context7": {
@@ -104,6 +108,10 @@
   },
   "general": {
     "disable": true
+  },
+  "deepseek-vision": {
+    "description": "DeepSeek V4 Flash Vision，视觉输入模型入口（识图/图像理解）",
+    "model": "deepseek/deepseek-v4-flash-vision-exp"
   }
 },
   "command": {
@@ -144,6 +152,11 @@
     "description": "Cross-model review: independent review by two different models, compare conclusions",
     "agent": "openai-56-sol",
     "template": "Perform a cross-model review of the given change.\n\nRules:\n- Read the change (diff or files) and review it as the PRIMARY reviewer.\n- Then dispatch a SECOND independent review by a different model.\n- Compare conclusions, list agreements and disagreements.\n\nTask input:\n$ARGUMENTS"
+  },
+  "vision": {
+    "description": "Visual analysis with DeepSeek V4 Flash Vision: describe/analyze/review an image or screenshot",
+    "agent": "deepseek-vision",
+    "template": "Load the `vision-analyze` skill and analyze the image(s) in the task.\n\nRules:\n- Confirm the image exists locally; if >300KB, compress first.\n- Give a clear task: describe / review / diagnose / design-to-code.\n- For UI screenshot review, apply `ux-design` five-layer laws and return a structured issue list.\n\nTask input:\n$ARGUMENTS"
   }
 },
   "instructions": ["~/.config/opencode/rules/ai/*.md"],

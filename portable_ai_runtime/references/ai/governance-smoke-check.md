@@ -20,10 +20,9 @@
    - `Auto-Triggers`
    - `Red Flags - STOP`
    - `Known Gotchas`
-2. `opencode.json` 的 `instructions` 是否同时覆盖：
-   - `~/.config/opencode/rules/*.md`
-   - `~/.config/opencode/rules/ai/*.md`
-（`rules/*.md` 根目录当前无文件；此项为防御性检查）
+2. `opencode.json` 的 `instructions` 是否覆盖薄壳：
+   - `~/.config/opencode/rules/ai/routing-rules.md`（强制注入的路由权威；`AGENTS.md` 由 opencode 自动加载）
+   - 不得再使用 `rules/ai/*.md` 全量通配，否则壳重新变厚
 3. `100000` 与 `150000` 阈值是否只保留一套正式定义，没有冲突版本
 4. 会话预算规则是否至少在以下两层出现锚点：
    - 顶层入口
@@ -39,26 +38,37 @@
 
 ### 实验性插件与 Hook 验证
 
-`plugins/session-governance.ts` 通过以下 hook 实施运行时治理：
+`plugins/session-governance/index.ts` 通过以下 hook 实施运行时治理：
 
-- `experimental.chat.system.transform`：在每次系统提示中注入 Governance Shell 和 Session Budget 块
-- `experimental.session.compacting`：在上下文压缩时保留 CURRENT_TASK、DECISIONS 和 session-budget-rules
-- `permission.ask`：对治理文件编辑做权限升级和文件尺寸硬拒绝
+- `ctx.session.hook("context", ...)`：在每次系统提示中注入 Governance Shell 和 Session Budget 块
+- `ctx.session.hook("compaction", ...)`：在上下文压缩时保留 CURRENT_TASK、DECISIONS 和 session-budget-rules
+- `ctx.permission.hook("evaluate", ...)`：对治理文件编辑做权限升级和文件尺寸硬拒绝
 
 验证步骤（需要重启当前 OpenCode 会话后才能完整验证）：
 
 1. 重启 OpenCode 后，在新会话中检查系统提示是否包含 `Governance Shell` 和 `Session Budget` 块
 2. 触发一次上下文压缩（长对话或手动 compact），检查压缩后是否仍保留 `Governance Context To Preserve` 块
-3. 尝试编辑一个超过 350 行或 15KB 的治理文件，确认被拒绝并显示尺寸超限消息
+3. 尝试编辑一个超过 350 行、25KB 或单行 500 字符的治理文件，确认被拒绝并显示尺寸超限消息
 4. 编辑一个正常大小的治理文件（如 `rules/ai/task-closure.md`），确认系统弹出权限确认而不是静默允许
 
 当前会话内可通过以下方式做静态验证：
 
 静态验证可通过 `scripts/plugin-status-check.sh` 执行。
 
+### `plugins/verify-gates/index.ts` 范围注记（纯静态验证）
+
+`plugins/verify-gates/index.ts` 只对治理文件做静态验证，不执行任何浏览器级动作：
+
+- 对 `VERIFY_TARGETS` 覆盖范围内的 `.json` 文件做 JSON 可解析性校验
+- 对治理类 `.md` 文件做行数守卫（超过 350 行给出拆分 WARN）
+- 软门禁：仅在工具输出上追加注记，不抛错、不拒绝任何编辑
+- 它**从不**触发页面图像采集，也**从不**探测本地 dev-server 端口；此类分支（原 Branch B 的图像采集 / 端口探测路径）已于 2026-09-02 移除，该插件当前没有任何浏览器自动化或本地端口探测能力
+
+该插件的文件头行为注记是本节的上游事实源；运行时治理 hook 见上方 `plugins/session-governance/index.ts` 段落。
+
 ### 通过标准
 
 - 所有入口块存在
-- `rules/ai/*.md` 已注入
+- `rules/ai/routing-rules.md` 已注入（薄壳）
 - 会话预算阈值无冲突
 - 没有把“治理接入”误报成“运行时自动强制”

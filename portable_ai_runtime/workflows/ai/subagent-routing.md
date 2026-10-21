@@ -48,9 +48,7 @@ Guardrails:
 
 ### Subagent Prompt Structure
 
-- 派发 prompt 必须按 `references/ai/subagent-prompt-template.md` 组织，至少包含：`Goal`、`Inputs`、`Outputs`、`Forbidden Zones`、`Acceptance Criteria`
-- `Forbidden Zones` 只写硬约束与禁止触碰的文件/模式；`Acceptance Criteria` 只写必须回传的机械可验证证据
-- 如果需要补充上下文，放进 `Inputs`，不要改写标题名，也不要改成中文标题
+- schema contract = `references/ai/subagent-prompt-template.md`（禁止其他 command-wrapper 结构；各字段语义与格式规则以模板为准，不在此重复）
 - `opencode.json` 中的 command template 只能作为进入某类 subagent 的轻量 wrapper，不应成为第二套结构模板
 
 ### 派发控制
@@ -59,6 +57,12 @@ Guardrails:
 - 不要中途打断 subagent，也不要在未完成前把任务抢回主 agent 自己做
 - 模型由 `oh-my-opencode-slim.json` 的 preset 统一分配，不在 subagent 派发层面逐个指定
 - 推理强度只能在 `high`、`medium`、`low` 中选择：复杂判断优先 `high`，大多数任务默认 `medium`，简单快扫任务可用 `low`
+- 双端同 spec 改动（如 app 导出 schema + 消费端解析）先各冻结一份 `writing-plans`，用「schema 契约键名表」做两计划的互锁锚点（一端写什么键，另一端就解析什么键），再并行派两个后台 fixer lane；验收时把 fixer 逐条申报的 deviations 清单当一等证据核对，而不是只信 OK
+- 前后端拆分先在 spec 冻结「JSON API 契约」（字段名、形状、状态枚举写死，否则两端各自发明字段），再并行派 designer（只写前端文件）与 fixer（只写后端文件），文件互斥零冲突；前端加 `?demo=1` 内嵌样例数据、不发任何 fetch，让 designer 无需后端即可完整自验，后端用真实数据起服 + curl 全端点验收
+- 多文件新功能先写一份精确到「字段名与类型」的接口规格（API 签名、结果字典 schema、文件路径、HTTP 契约），再让各 lane 只消费冻结契约、写范围不重叠地并行，最后一次性集成；spec 不精确接口就会漂
+- 并行 lane 禁用硬编码的共享临时路径（如 `/tmp/inst`，一条 lane 的 `rm -rf` 会抹掉另一条 lane 正在用的树）；每条 lane 必须用车道唯一路径 `/tmp/<lane>-<rand>`，并在派发提示词里显式禁止共享路径
+- 仓库级共享生成目录（如 `installer/runtime/`）是并行 lane 的隐性争用点，各 lane 自测后 `rm -rf` 会互相删掉对方正在校验的生成物；产物要么放车道唯一目录（`runtime/<lane>/` 或 `/tmp/<lane>-<rand>/`），要么显式约定只在自己的单次 shell 调用内「生成 + 快照 + 断言」、不跨调用依赖
+- verifier 车道出现无终态停止（`stopped (unconfirmed)` / `no live status entry`、零报告只留中间物）时，不得当作「已完成验证」；改由 root lane 接管执行既定验证项，并在验证报告 Method 节显式声明来源非独立，重试时缩小范围（如给网络型步骤硬限 `timeout` 并标为 optional）
 
 8. 如果判断结果为串行，先执行最小探索步骤，再按新证据重新评估是否需要并行
 9. 如果判断结果为并行，先按共享英文模板写清每个 subagent 的目标、边界、输入、输出与验证要求，再开始派发

@@ -9,7 +9,7 @@
   - 变更范围：
   - 实际核对文件：
   - 路径存在性检查：通过 / 失败
-  - `workflows/ai/check-governance-consistency.md`：已执行 / 不适用
+  - `workflows/ai/check-governance-consistency.md`：PASS / FAIL + 证据（治理变更必做，不允许"不适用"）
   - 是否发现冲突或第二真相面：无 / 有（说明）
 
 ### 2. Serena / LSP / MCP config changes
@@ -27,7 +27,7 @@
 - 适用：`workflows/ai/subagent-routing.md`、subagent dispatch 结构、相关 agent prompt
 - 证据块：
   - 核对的 routing / prompt 文件：
-  - 是否仍对齐共享模板 `Role / Goal / Scope / Constraints / Inputs / Expected Output / Verification`：是 / 否
+  - subagent prompt 契约是否与 `references/ai/subagent-prompt-template.md` 当前 5 段契约完全一致（PASS / FAIL + 证据）：是 / 否
   - 是否引入第二套 prompt 结构：否 / 是（说明）
   - 相关运行面或引用面是否同步：是 / 否（说明）
 
@@ -49,7 +49,7 @@
   - 核对的入口与规则文件：
   - 是否已覆盖“新任务重路由”与“长会话强提醒”两类场景：是 / 否
   - 当前 host 是否暴露可直接读取的实时 token 计数：是 / 否
-  - 如果否，当前结论类型：治理约束已接入 / 已建立真实运行时门禁
+  - 如果否，当前结论类型：治理约束已接入；真实运行时门禁未证实，依赖 host 暴露实时上下文计数信息
   - 是否发现第二套阈值、旧提醒文案或冲突表述：无 / 有（说明）
 
 ### 6. 双模型交叉验证模板（高风险改动）

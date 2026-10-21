@@ -33,7 +33,7 @@
 | Code review | `workflows/ai/fix-and-review.md` | `requesting-code-review` → `workflows/ai/fix-and-review.md` |
 | Vibe (multi-file, cross-turn, frozen req/plan) | `skills/vibe/SKILL.md` | `vibe` |
 | Multi-subtask | `workflows/ai/subagent-routing.md` | `subagent-driven-development` |
-| Governance change | `workflows/ai/check-governance-consistency.md` | `customize-opencode` |
+| Governance change | `workflows/ai/check-governance-consistency.md` | `customize-opencode`（治理仓内非琐碎变更按下方覆盖规则优先被 `vibe` 接管） |
 | UX design / review | `rules/ai/routing-rules.md` | `ux-design` skill → internal Common Tasks |
 | 中文写作 / 小说创作 | `docs/writing-stack.md` | 创作 `human-writing` → 改稿 `humanizer-zh` → 检查 `skills/human-writing/scripts/check_prose.py` |
 | Other / unlisted | `rules/ai/routing-rules.md` | Match closest workflow, explain why |
@@ -48,8 +48,11 @@
 - 当任务属于治理系统变更时，结束前执行 `workflows/ai/check-governance-consistency.md`
 - 宣称非琐碎任务完成前，执行 `rules/ai/task-closure.md` 与 `rules/ai/verification-rules.md`
 - 当 AAR 产出暂不适合直接进入正式治理面的高价值结论时，按 `rules/ai/recording-rules.md` 写入 `~/docs/ai/AAR_his/AAR_INBOX.md`
-- 当用户需要网站结构化数据（价格/商品/物流/房产/市场数据）或提到 parse.bot 时，加载 `parse-api` skill（详见 `rules/ai/auto-parse-api-rule.md`）
-- 当用户进行网络小说/网文/故事等中文创作或要求"活人感"时，加载 `human-writing` skill（详见 `rules/ai/auto-human-writing-rule.md`）
+- 当用户需要网站结构化数据（价格/商品/物流/房产/市场数据）或提到 parse.bot 时，加载 `parse-api` skill（详见 `rules/ai/auto-trigger-rules.md`）
+- 当用户进行网络小说/网文/故事等中文创作或要求"活人感"时，加载 `human-writing` skill（详见 `rules/ai/auto-trigger-rules.md`）
+- 当用户要求画流程图、架构图、时序图、ER 图、思维导图、拓扑图等结构化图表或提到 drawio 时，加载 `diagram-drawio` skill（详见 `rules/ai/auto-trigger-rules.md`）
+- 当用户进行 Ansible/SSH/Linux 服务器部署、配置模板、备份恢复或 cron/systemd 运维自动化时，加载 `ansible-ssh-deployment` skill（详见 `rules/ai/auto-trigger-rules.md`）
+- 当问题涉及个人知识库内容（个人笔记/乐理/学习导航项目，或用户说"我的笔记/知识库"）时，先用 `zazaki-rag` 的 `search_knowledge` 检索再回答（详见 `rules/ai/auto-trigger-rules.md`）
 ### Red Flags - STOP
 - `这次只是小补充，不算新任务`
 - `我刚刚已经读过这些文件`

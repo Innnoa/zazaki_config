@@ -47,6 +47,7 @@
 - **writing-plans → intuition-probe** — 文件结构、接口边界在敲定前可盲测
 - **grill-me ↔ intuition-probe** — grill-me 锁定设计者决策，intuition-probe 验证用户期望。偏差处优先对齐到 LLM 猜测
 - **skill 入口** — `skills/intuition-probe/SKILL.md` 作为用户直接入口
+- **完整组合链路** — grill-me → intuition-probe → 偏差对齐的验证流水线见 `references/ai/design-validation-pipeline.md`
 
 ### 禁止事项
 

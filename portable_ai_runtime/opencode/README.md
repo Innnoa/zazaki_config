@@ -3,7 +3,7 @@
 ## 文件
 
 - `opencode.template.jsonc` — OpenCode 配置模板
-- `plugins/session-governance.ts` — 会话治理插件
+- `plugins/session-governance/index.ts` — 会话治理插件
 - `agents/` — Agent 定义
 - `commands/` — 命令定义
 - `mcp/` — MCP 服务器配置

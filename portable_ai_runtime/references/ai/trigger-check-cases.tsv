@@ -1,5 +1,5 @@
 phrase	expected_route	expected_anchor_file	expected_anchor_text	note
-这个 bug 为什么还没修好	systematic-debugging	rules/ai/routing-rules.md	修 bug（已知根因）	bug 路由样本
+这个 bug 为什么还没修好	systematic-debugging	rules/ai/routing-rules.md	修 bug（根因已知）	bug 路由样本
 这个测试怎么突然挂了	systematic-debugging	references/ai/trigger-phrases.md	systematic-debugging	测试失败路由样本
 帮我设计一下这个功能	brainstorming	AGENTS.md	New feature / behavior change / exploration	设计前置样本
 这个功能需求还没完全想清楚，先一起收敛一下	brainstorming	references/ai/trigger-phrases.md	brainstorming	需求未确认样本
